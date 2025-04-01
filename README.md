@@ -28,5 +28,19 @@ This dataset is a collection of South Florida water stage dataset.
 > Please make sure the commands are recorded. We will need them for reproduction.
 
 
+--------------------------------------------
+## Git
+
+- (init code)git clone / git pull 
+- (new local branch) git branch [branch-name]
+- (switch to new branch) git checkout [branch-name]
+- (work, add your code)  git add 
+- (commit) git commit 
+- (switch to main branch) git checkout [main]
+- (update main branch) git pull
+- (merge local branch to main) git merge [branch-name]
+- (push to server)git push
+
+> If you already have a local branch, first update main, then merge main to local branch. 
 
 
