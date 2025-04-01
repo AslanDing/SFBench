@@ -22,6 +22,7 @@ This dataset is a collection of South Florida water stage dataset.
 ## run & evaluate 
 
 - set SEED = 2025 , to make sure reproducibility 
+- use adam as default optimizer
 - use the default hyperparmeters according to the paper or their code 
 - record the running command and put it into run.sh 
 
