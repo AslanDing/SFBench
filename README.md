@@ -1,43 +1,32 @@
-# WaterBenchmark
-A water level dataset and benchmark
+# South Florida Flood dataset & Forcasting Benchmark
+
+This dataset is a collection of South Florida water stage dataset.
 
 --------------------------------------------
-## 1. Download the surface water data 
+## dataset download
 
-### a. get water moniter stations dbkey 
-- use the [url](https://my.sfwmd.gov/dbhydroplsql/show_dbkey_info.web_qry_parameter?v_category=SW&v_js_flag=Y) to get the api fliter parameters
-- use /dataset_download/download_tables.py download the csv file(contains dbkey,data type, start date, end date, locations)
-- use /dataset_download/download_dbkey.py download the csv file according to the table
-
-### b. preprocess
-- calculate the start date and end date(select water stations)
-- calculate the hourly data(missing data refilling)
-
+- Onedrive
+- trustai4s 
 
 --------------------------------------------
-## 2. Download the undergraound water data 
+## development
 
-### a. get water moniter stations dbkey 
-- use the [url](https://my.sfwmd.gov/dbhydroplsql/show_dbkey_info.web_qry_parameter?v_category=GW&v_js_flag=Y) to get the api fliter parameters
-- use /dataset_download/download_tables.py download the csv file(contains dbkey,data type, start date, end date, locations)
-- use /dataset_download/download_dbkey.py download the csv file according to the table
+- enviroment based on the [NeuralForecast](https://github.com/Nixtla/neuralforecast/tree/main?tab=readme-ov-file)
+- follow the src/demo pipeline
+- complete the model file and put in folder in src/models
+- create your own test file and test
 
-### b. preprocess
-- calculate the start date and end date(select water stations)
-- calculate the hourly data(missing data refilling)
-
+> Please make sure every model have the same apis for train and evaluation. We will need one file to run all the models.
 
 --------------------------------------------
-## 3. Download the tide water data 
+## run & evaluate 
 
-### to be continued 
+- set SEED = 2025 , to make sure reproducibility 
+- use the default hyperparmeters according to the paper or their code 
+- record the running command and put it into run.sh 
 
+> Please make sure the commands are recorded. We will need them for reproduction.
 
-
---------------------------------------------
-## 4. Download the rainfall water data
-
-### to be continued 
 
 
 
