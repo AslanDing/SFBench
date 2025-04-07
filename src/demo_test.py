@@ -19,7 +19,6 @@ from models.cnn.modernTCN import ModernTCN
 from models.mlp.nbeats import NBeats
 from models.mlp.nlinear import NLinear
 from models.mlp.tsmixer import TSMixer
-from models.mlp.mlp import MLP
 
 from models.llm.timellm import TimeLLM
 from models.llm.s2ipllm import S2IPLLM
@@ -44,24 +43,16 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-def evaluation(model, dataloader,dataset,device,batch_size = 32,valid=True):
+def evaluation(model, dataloader,dataset,device,batch_size = 32):
 
     model.eval()
     mean = dataset.all_timeseries_std_mean['WATER']['mean']
     std = dataset.all_timeseries_std_mean['WATER']['std']
 
-    # inputs_water = []
+    inputs_water = []
     outputs_water = []
     preds_water = []
     # percentile_mask_lists = [[],[],[]]
-
-
-    percent_10 = (dataset.percentile_mask_10['WATER'] - mean )/std
-    percent_5 = (dataset.percentile_mask_5['WATER'] - mean )/std
-    percent_1 = (dataset.percentile_mask_1['WATER'] - mean )/std
-
-    all_metric = {}
-    all_count = 0
     for batch in tqdm(dataloader):
 
         all_input = []
@@ -90,7 +81,7 @@ def evaluation(model, dataloader,dataset,device,batch_size = 32,valid=True):
         output = torch.concat(all_output, dim=1)
         output_mask = torch.concat(all_output_mask, dim=1)
 
-        pred = model(input[:,water_start:water_end,:].to(device)).detach()
+        pred = model(input.to(device)).detach()
 
         # input = input[:, water_start:water_end, :].contiguous()
         # output = output[:, water_start:water_end, :].contiguous()
@@ -106,34 +97,19 @@ def evaluation(model, dataloader,dataset,device,batch_size = 32,valid=True):
         #     pred.append(predtemp.cpu().detach())
         # pred = torch.concat(pred,dim=1)
 
-        # inputs_water.append(input.cpu()[:,water_start:water_end,:])
+        inputs_water.append(input.cpu()[:,water_start:water_end,:])
         outputs_water.append(output.cpu()[:,water_start:water_end,:])
-        preds_water.append(pred.cpu())
+        preds_water.append(pred.cpu()[:,water_start:water_end,:].view(input.shape[0],-1,output.shape[-1]))
+    inputs_water = torch.concat(inputs_water,dim=0)
+    outputs_water = torch.concat(outputs_water,dim=0)
+    preds_water = torch.concat(preds_water,dim=0)
 
-        metrics = cal_metrics(output.cpu()[:,water_start:water_end,:], pred.cpu().view(input.shape[0],-1,output.shape[-1]),
-                              [percent_10, percent_5, percent_1])
+    percent_10 = (dataset.percentile_mask_10['WATER'] - mean )/std
+    percent_5 = (dataset.percentile_mask_5['WATER'] - mean )/std
+    percent_1 = (dataset.percentile_mask_1['WATER'] - mean )/std
 
-        for key in metrics.keys():
-            if key in all_metric.keys():
-                if 'sedi' in key:
-                    all_metric[key][0] += metrics[key][0]
-                    all_metric[key][1] += metrics[key][1]
-                    all_metric[key][2] += metrics[key][2]
-                else:
-                    all_metric[key] += metrics[key]
-            else:
-                all_metric[key] = metrics[key]
-        all_count += 1
-
-    for key in all_metric.keys():
-        if 'sedi' in key:
-            all_metric[key][0] = all_metric[key][0] /all_count
-            all_metric[key][1] = all_metric[key][1] /all_count
-            all_metric[key][2] = all_metric[key][2] /all_count
-        else:
-            all_metric[key] = all_metric[key]/all_count
-
-    return all_metric
+    metrics = cal_metrics(inputs_water,preds_water,outputs_water,mean,std,[percent_10,percent_5,percent_1])
+    return metrics
 
 def main(args):
     # data_dir, dataset, method, device, SEED
@@ -177,10 +153,7 @@ def main(args):
         model = NLinear(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
     elif method_name.lower() == 'TSMixer'.lower():
         model = TSMixer(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-    elif method_name.lower() == 'mlp'.lower():
-        model = MLP(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-        optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
-                                weight_decay=weight_decay)
+
     # LLM
     elif method_name.lower() == 'timellm'.lower():
         model = TimeLLM(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
@@ -276,15 +249,15 @@ def main(args):
             output = torch.concat(all_output,dim=1)
             output_mask = torch.concat(all_output_mask,dim=1)
 
-            pred = model(input[:,water_start:water_end,:].to(device))
-            loss = criterion(pred, output[:,water_start:water_end,:].to(device))
+            pred = model(input.to(device))
+            loss = criterion(pred[:,water_start:water_end,:],output[:,water_start:water_end,:].to(device))
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             sum_loss += loss.item()
             count_loss += 1
-            # break
+            break
         print(f'{epoch} loss:{sum_loss/count_loss}')
         metric_dict = evaluation(model,val_dataloder,dataset_dict['val'],device,batch_size)
         if metric_dict['mse']<best_eval:
@@ -292,7 +265,7 @@ def main(args):
             best_model_dict = model.state_dict()
 
     model.load_state_dict(best_model_dict)
-    test_metric_dict = evaluation(model,test_dataloder,dataset_dict['test'],device,batch_size,valid=False)
+    test_metric_dict = evaluation(model,test_dataloder,dataset_dict['test'],device,batch_size)
     for key in test_metric_dict.keys():
         print(f'{key}: {test_metric_dict[key]}')
 
@@ -308,22 +281,22 @@ if __name__=="__main__":
         description='What the program does',
         epilog='Text at the bottom of help')
 
-    parser.add_argument('--dataset_path', default='../dataset_download/Processed')
+    parser.add_argument('--dataset_path', default='../dataset/Processed')
     parser.add_argument('--cache_dir', default='./cache')
-    parser.add_argument('--dataset', default='S_2', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'])
+    parser.add_argument('--dataset', default='S_3', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'])
     parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'])
     parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'])
     parser.add_argument('--length_output', default='12H', choices=['1H', '6H', '12H', '1D', '2D'])
 
-    parser.add_argument('--method', default='mlp') # S2IPLLM
+    parser.add_argument('--method', default='stemGNN') # S2IPLLM
 
-    parser.add_argument('--lr', default=1E-3)
+    parser.add_argument('--lr', default=1E-4)
     parser.add_argument('--weight_decay', default=0E-5)
     parser.add_argument('--epoches', default=50)
     parser.add_argument('--batchsize', default=8)
 
 
-    parser.add_argument('--device', default='cuda:3')
+    parser.add_argument('--device', default='cuda:4')
     parser.add_argument('--seed', default=2025, type=int)
 
     args = parser.parse_args()
