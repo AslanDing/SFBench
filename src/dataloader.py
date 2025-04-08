@@ -410,7 +410,7 @@ class SFFLOODDatasetP(Dataset):
                 percentile_mask_10, percentile_mask_5, percentile_mask_1)
 
 
-def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',
+def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',device = 'cpu',
                         t_input = '2D', t_span = '0H', t_output = '1D',
                         batch_size = 128, shuffle = True):
     """
@@ -446,7 +446,7 @@ def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',
             {'train':train_loader,'val':valid_loader,'test':test_loader})
 
 
-def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',
+def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',device = 'cpu',
                         t_input = '3D', t_span = '0H', t_output = '1D',
                         batch_size = 128, shuffle = True, cache_dir='./cache'):
 
