@@ -242,7 +242,7 @@ class SFFLOODDataset(Dataset):
 
 class SFFLOODDatasetP(Dataset):
     def __init__(self, dir, split,part, length_input,length_span,length_output,
-                    training_datetime,device='cpu'):
+                    training_datetime,device='cpu',ESP=1E-4):
         super().__init__()
         self.device = device
         (self.all_timeseries, self.all_timemasks, self.all_stationnames,
@@ -252,6 +252,7 @@ class SFFLOODDatasetP(Dataset):
         self.length_input = length_input
         self.length_span = length_span
         self.length_output = length_output
+        self.ESP = ESP
 
     def __len__(self):
         return self.length
@@ -298,7 +299,8 @@ class SFFLOODDatasetP(Dataset):
                 continue
             timeseries_data = all_timeseries[key]
             mean = torch.mean(timeseries_data,dim=1)
-            std = torch.std(timeseries_data, dim=1)+1E-8
+            std = torch.std(timeseries_data, dim=1)
+            std = torch.where(std<self.ESP, torch.ones_like(std), std)
             all_timeseries_std_mean[key] = {'mean':mean.view(-1,1),'std':std.view(-1,1)}
 
         return all_timeseries_std_mean
