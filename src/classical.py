@@ -329,19 +329,5 @@ if __name__ == "__main__":
     elif 'SVR'.lower() in args.method.lower():
         main_SVR(args)
 
-"""
-S_2
 
-main_ARIMA
 
-{'mae': np.float64(1.1368016649620498),
- 'mape': np.float64(inf),
- 'mse': np.float64(4.440994812363518),
- 'mspe': np.float64(inf),
- 'nse': -7097.65575399932
- 'rmse': np.float64(2.1073667958766737),
- 'sedi': [np.float64(0.017925009872557997),
-          np.float64(0.012666112672330768),
-          np.float64(0.0048138969409283385)]}
-
-"""

@@ -86,7 +86,7 @@ def sort_files(dir,split):
 
 class SFFLOODDataset(Dataset):
     def __init__(self, dir, split, length_input,length_span,length_output,
-                    training_datetime,device='cpu'):
+                    training_datetime,device='cpu',ESP=1E-4):
         super().__init__()
         self.device = device
         (self.all_timeseries, self.all_timemasks, self.all_stationnames,
@@ -96,6 +96,7 @@ class SFFLOODDataset(Dataset):
         self.length_input = length_input
         self.length_span = length_span
         self.length_output = length_output
+        self.ESP = ESP
 
     def __len__(self):
         return self.length
@@ -138,7 +139,8 @@ class SFFLOODDataset(Dataset):
         for key in all_timeseries_std_mean.keys():
             timeseries_data = all_timeseries[key]
             mean = torch.mean(timeseries_data,dim=1)
-            std = torch.std(timeseries_data, dim=1)+1E-8
+            std = torch.std(timeseries_data, dim=1)
+            std = torch.where(std<self.ESP, torch.ones_like(std), std)
             all_timeseries_std_mean[key] = {'mean':mean.view(-1,1),'std':std.view(-1,1)}
 
         return all_timeseries_std_mean
@@ -436,7 +438,7 @@ def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',
 
     test_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['test'])
     test_dataset.set_std_mean(all_timeseries_mean_std)
-    test_loader = DataLoader(test_dataset,batch_size)
+    test_loader = DataLoader(test_dataset,batch_size=1)
 
     return ({'train':train_dataset, 'val': valid_dataset, 'test':test_dataset},
             {'train':train_loader,'val':valid_loader,'test':test_loader})
@@ -491,7 +493,7 @@ def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',
     for i in range(3):
         train_loader.append(DataLoader(train_dataset[i],batch_size,shuffle))
         valid_loader.append(DataLoader(valid_dataset[i],batch_size))
-        test_loader.append(DataLoader(test_dataset[i],batch_size))
+        test_loader.append(DataLoader(test_dataset[i],batch_size=1))
 
     return ({'train':train_dataset, 'val': valid_dataset, 'test':test_dataset},
             {'train':train_loader,'val':valid_loader,'test':test_loader})

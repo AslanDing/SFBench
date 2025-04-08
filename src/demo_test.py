@@ -14,7 +14,7 @@ from dataloader import load_dataset_loader
 from evaluation import cal_metrics
 
 from models.cnn.timesnet import Timesnet
-from models.cnn.modernTCN import ModernTCN
+from models.cnn.modernTCN import modernTCN as ModernTCN
 
 from models.mlp.nbeats import NBeats
 from models.mlp.nlinear import NLinear
