@@ -158,7 +158,7 @@ def main(args):
     cache_dir = args.cache_dir
     # load dataset
     dataset_dict, dataloader_dict = load_dataset_loader(data_dir,dataset,
-                                length_input,length_span,length_output,batch_size,cache_dir=cache_dir)
+                                length_input,length_span,length_output,batch_size,cache_dir=cache_dir,device=device)
 
     input_t_length = dataset_dict['train'].length_input
     span_t_length = dataset_dict['train'].length_span
