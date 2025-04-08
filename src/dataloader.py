@@ -410,9 +410,9 @@ class SFFLOODDatasetP(Dataset):
                 percentile_mask_10, percentile_mask_5, percentile_mask_1)
 
 
-def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',device = 'cpu',
+def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',
                         t_input = '2D', t_span = '0H', t_output = '1D',
-                        batch_size = 128, shuffle = True):
+                        batch_size = 128, shuffle = True,device = 'cpu'):
     """
     :param dir: Path to dataset folder
     :param spilt:  S_0-S_7
@@ -429,16 +429,16 @@ def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',devic
     length_span = t_spans[t_span][index]
     length_output = t_outputs[t_output][index]
 
-    train_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['train'])
+    train_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['train'],device=device)
     all_timeseries_mean_std = train_dataset.calculate_normalization(train_dataset.all_timeseries)
     train_dataset.set_std_mean(all_timeseries_mean_std)
     train_loader = DataLoader(train_dataset,batch_size,shuffle)
 
-    valid_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['val'])
+    valid_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['val'],device=device)
     valid_dataset.set_std_mean(all_timeseries_mean_std)
     valid_loader = DataLoader(valid_dataset,batch_size)
 
-    test_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['test'])
+    test_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['test'],device=device)
     test_dataset.set_std_mean(all_timeseries_mean_std)
     test_loader = DataLoader(test_dataset,batch_size=1)
 
@@ -446,9 +446,9 @@ def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',devic
             {'train':train_loader,'val':valid_loader,'test':test_loader})
 
 
-def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',device = 'cpu',
+def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',
                         t_input = '3D', t_span = '0H', t_output = '1D',
-                        batch_size = 128, shuffle = True, cache_dir='./cache'):
+                        batch_size = 128, shuffle = True, cache_dir='./cache',device = 'cpu'):
 
     assert split in splits
     assert t_input in t_inputs
@@ -472,16 +472,16 @@ def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',
         test_dataset = []
         valid_dataset = []
         for i in range(3):
-            train_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['train'])
+            train_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['train'],device=device)
             all_timeseries_mean_std = train_dataset_tmp.calculate_normalization(train_dataset_tmp.all_timeseries)
             train_dataset_tmp.set_std_mean(all_timeseries_mean_std)
             train_dataset.append(train_dataset_tmp)
 
-            valid_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['val'])
+            valid_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['val'],device=device)
             valid_dataset_tmp.set_std_mean(all_timeseries_mean_std)
             valid_dataset.append(valid_dataset_tmp)
 
-            test_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['test'])
+            test_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['test'],device=device)
             test_dataset_tmp.set_std_mean(all_timeseries_mean_std)
             test_dataset.append(test_dataset_tmp)
 
