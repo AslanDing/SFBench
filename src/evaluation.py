@@ -100,6 +100,11 @@ def cal_metrics(pred, true, mean, std, percents=None):
 
     if not percents is None:
         sedi_list = []
+
+        if isinstance(percents[0],np.ndarray):
+            pass
+        else:
+            percents = [percents[0].cpu().numpy(),percents[1].cpu().numpy(),percents[1].cpu().numpy()]
         for mask in percents:
             sedi = SEDI(pred_np, true_np, mask)
             sedi_list.append(sedi)
