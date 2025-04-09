@@ -59,18 +59,33 @@ def interestingness_score(batch, mean, std):
     return score.unsqueeze(-1)
 
 # all tensor required
-def NSE(input,pred,true,mean,std):
+def NSE(pred,true,mean,std):
     # B,N,T = pred.shape
 
     model_mse = (pred-true)**2
-    mean_mse = (true-torch.mean(true,dim=-1).unsqueeze(-1))**2
+    mean_mse = (true-mean.view(-1,1))**2
 
     weighted_nse = 1 - model_mse / mean_mse
     weighted_nse = weighted_nse.mean()
     return weighted_nse.cpu()
 
-def cal_metrics(input, pred, true, mean, std, percents=None):
+def cal_metrics(pred, true, mean, std, percents=None):
     metric_dict = {}
+
+    
+    if isinstance(pred,np.ndarray):
+        pred_np = pred
+        true_np = true
+    else:
+        pred_np = pred.cpu().detach().numpy()
+        true_np = true.cpu().detach().numpy()
+
+    if isinstance(mean,np.ndarray):
+        mean_np = mean
+        std_np = std
+    else:
+        mean_np = mean.cpu().detach().numpy()
+        std_np = std.cpu().detach().numpy()
 
     pred_np = pred.cpu().detach().numpy()
     true_np = true.cpu().detach().numpy()
@@ -93,7 +108,7 @@ def cal_metrics(input, pred, true, mean, std, percents=None):
             sedi_list.append(sedi)
         metric_dict['sedi'] = sedi_list
 
-    nse = NSE(input,pred,true,mean,std)
+    nse = NSE(input,pred,true,mean_np,std_np)
     metric_dict['nse'] = nse
     return metric_dict
 

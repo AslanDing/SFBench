@@ -111,6 +111,7 @@ def evaluation(model, dataloader,dataset,device,batch_size = 32,valid=True):
         preds_water.append(pred.cpu())
 
         metrics = cal_metrics(output.cpu()[:,water_start:water_end,:], pred.cpu().view(input.shape[0],-1,output.shape[-1]),
+                              mean,std,
                               [percent_10, percent_5, percent_1])
 
         for key in metrics.keys():
