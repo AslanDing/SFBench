@@ -63,7 +63,7 @@ def NSE(pred,true,mean,std):
     # B,N,T = pred.shape
 
     model_mse = (pred-true)**2
-    mean_mse = (true-mean.view(-1,1))**2
+    mean_mse = (true-mean.reshape(1,-1,1))**2
 
     weighted_nse = 1 - model_mse / mean_mse
     weighted_nse = weighted_nse.mean()
