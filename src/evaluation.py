@@ -87,9 +87,6 @@ def cal_metrics(pred, true, mean, std, percents=None):
         mean_np = mean.cpu().detach().numpy()
         std_np = std.cpu().detach().numpy()
 
-    pred_np = pred.cpu().detach().numpy()
-    true_np = true.cpu().detach().numpy()
-
     mae = MAE(pred_np, true_np)
     metric_dict['mae'] = mae
     mse = MSE(pred_np, true_np)
@@ -108,7 +105,7 @@ def cal_metrics(pred, true, mean, std, percents=None):
             sedi_list.append(sedi)
         metric_dict['sedi'] = sedi_list
 
-    nse = NSE(input,pred,true,mean_np,std_np)
+    nse = NSE(pred_np,true_np,mean_np,std_np)
     metric_dict['nse'] = nse
     return metric_dict
 
