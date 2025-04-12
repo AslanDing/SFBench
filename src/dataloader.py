@@ -412,7 +412,8 @@ class SFFLOODDatasetP(Dataset):
 
 def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',
                         t_input = '2D', t_span = '0H', t_output = '1D',
-                        batch_size = 128, shuffle = True,device = 'cpu'):
+                        batch_size = 128, shuffle = True,cache_dir='./cache', 
+                        device = 'cpu',use_cache=False):
     """
     :param dir: Path to dataset folder
     :param spilt:  S_0-S_7
@@ -421,40 +422,57 @@ def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',
     """
     assert split in splits
     assert t_input in t_inputs
+    cache_path = cache_dir + '/' +f'{split}_{t_input}_{t_span}_{t_output}.pt'
+    if use_cache: #os.path.exists(cache_path):
+        dataset_dict = torch.load(cache_path, weights_only=False)
+        train_dataset = dataset_dict['train']
+        test_dataset = dataset_dict['test']
+        valid_dataset = dataset_dict['valid']
+    else:
 
-    index = splits.index(split)
-    splits_date = splits_dates[split]
+        index = splits.index(split)
+        splits_date = splits_dates[split]
 
-    length_input = t_inputs[t_input][index]
-    length_span = t_spans[t_span][index]
-    length_output = t_outputs[t_output][index]
+        length_input = t_inputs[t_input][index]
+        length_span = t_spans[t_span][index]
+        length_output = t_outputs[t_output][index]
 
-    train_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['train'],device=device)
-    all_timeseries_mean_std = train_dataset.calculate_normalization(train_dataset.all_timeseries)
-    train_dataset.set_std_mean(all_timeseries_mean_std)
+        train_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['train'],device=device)
+        all_timeseries_mean_std = train_dataset.calculate_normalization(train_dataset.all_timeseries)
+        train_dataset.set_std_mean(all_timeseries_mean_std)
+
+        valid_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['val'],device=device)
+        valid_dataset.set_std_mean(all_timeseries_mean_std)
+
+        test_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['test'],device=device)
+        test_dataset.set_std_mean(all_timeseries_mean_std)
+
+        if use_cache:
+            if not os.path.exists(cache_dir):
+                os.makedirs(cache_dir)
+            torch.save({'train':train_dataset,'valid':valid_dataset,'test':test_dataset},cache_path)
+
     train_loader = DataLoader(train_dataset,batch_size,shuffle)
-
-    valid_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['val'],device=device)
-    valid_dataset.set_std_mean(all_timeseries_mean_std)
     valid_loader = DataLoader(valid_dataset,batch_size)
-
-    test_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['test'],device=device)
-    test_dataset.set_std_mean(all_timeseries_mean_std)
     test_loader = DataLoader(test_dataset,batch_size=1)
+
 
     return ({'train':train_dataset, 'val': valid_dataset, 'test':test_dataset},
             {'train':train_loader,'val':valid_loader,'test':test_loader})
 
 
+
 def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',
                         t_input = '3D', t_span = '0H', t_output = '1D',
-                        batch_size = 128, shuffle = True, cache_dir='./cache',device = 'cpu'):
+                        batch_size = 128, shuffle = True, cache_dir='./cache',
+                        device = 'cpu',use_cache=False):
+    
 
     assert split in splits
     assert t_input in t_inputs
 
     cache_path = cache_dir + '/' +f'{split}_{t_input}_{t_span}_{t_output}_parts.pth'
-    if os.path.exists(cache_path):
+    if use_cache: #os.path.exists(cache_path):
         dataset_dict = torch.load(cache_path,map_location='cpu',weights_only=False)
         train_dataset = dataset_dict['train']
         test_dataset = dataset_dict['test']
@@ -484,10 +502,12 @@ def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',
             test_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['test'],device=device)
             test_dataset_tmp.set_std_mean(all_timeseries_mean_std)
             test_dataset.append(test_dataset_tmp)
-
-        if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
-        torch.save({'train':train_dataset,'valid':valid_dataset,'test':test_dataset},cache_path)
+        
+        
+        if use_cache:
+            if not os.path.exists(cache_dir):
+                os.makedirs(cache_dir)
+            torch.save({'train':train_dataset,'valid':valid_dataset,'test':test_dataset},cache_path)
 
     train_loader = []
     valid_loader = []
