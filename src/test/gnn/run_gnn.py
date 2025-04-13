@@ -294,7 +294,7 @@ if __name__=="__main__":
 
     parser.add_argument('--dataset_path', default='../dataset/Processed')
     parser.add_argument('--cache_dir', default='./cache')
-    parser.add_argument('--dataset', default='S_5', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'])
+    parser.add_argument('--dataset', default='S_2', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'])
     parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'])
     parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'])
     parser.add_argument('--length_output', default='12H', choices=['1H', '6H', '12H', '1D', '2D'])
@@ -307,7 +307,7 @@ if __name__=="__main__":
     parser.add_argument('--batchsize', default=64)
 
 
-    parser.add_argument('--device', default='cuda:0')
+    parser.add_argument('--device', default='cuda:1')
     parser.add_argument('--seed', default=2025, type=int)
 
     args = parser.parse_args()
@@ -315,7 +315,3 @@ if __name__=="__main__":
     print(args)
     main(args)
 
-"""
-setting:
-    Namespace(dataset_path='../dataset/Processed', cache_dir='./cache', dataset='S_0', length_input='3D', length_span='0H', length_output='12H', method='gcn', lr=0.0001, weight_decay=1e-05, epoches=100, batchsize=64, device='cuda:6', seed=2025)
-"""

@@ -15,6 +15,7 @@ from evaluation import cal_metrics
 
 from models.cnn.timesnet import Timesnet
 from models.cnn.modernTCN import ModernTCN
+from models.cnn.tcn_his import TCN
 
 from models.mlp.nbeats import NBeats
 from models.mlp.nlinear import NLinear
@@ -26,6 +27,7 @@ from models.llm.s2ipllm import S2IPLLM
 
 from models.rnn.deepAR import DeepAR
 from models.rnn.dilateRNN import DilatedRNN
+from models.rnn.lstm import LSTM
 
 from models.gnn.stemGNN import stemGNN
 from models.gnn.fourierGNN import FourierGNN
@@ -91,7 +93,7 @@ def evaluation(model, dataloader,dataset,device,batch_size = 32,valid=True):
         # outputs_water.append(output.cpu()[:,water_start:water_end,:])
         # preds_water.append(pred.cpu()[:,water_start:water_end,:].view(input.shape[0],-1,output.shape[-1]))
 
-        metrics = cal_metrics(output.cpu()[:,water_start:water_end,:], pred.cpu()[:,water_start:water_end,:].view(input.shape[0],-1,output.shape[-1]),
+        metrics = cal_metrics(output[:,water_start:water_end,:].cpu(), pred[:,water_start:water_end,:].cpu().view(input.shape[0],-1,output.shape[-1]),
                               mean,std,[percent_10, percent_5, percent_1])
 
         # if metrics['mse']>10:
@@ -187,6 +189,10 @@ def main(args):
         model = DeepAR(input_t_length, span_t_length, output_t_length, output_dim, output_dim, output_dim)
     elif method_name.lower() == 'DilatedRNN'.lower():
         model = DilatedRNN(input_t_length, span_t_length, output_t_length, output_dim, output_dim, output_dim)
+    elif method_name.lower() == 'LSTM'.lower():
+        model = LSTM(input_t_length, span_t_length, output_t_length, output_dim, output_dim, output_dim)
+        optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
+                                weight_decay=weight_decay)
 
     # GNN
     elif method_name.lower() == 'stemGNN'.lower():
@@ -209,6 +215,12 @@ def main(args):
     # CNN
     elif method_name.lower() == 'ModernTCN'.lower():
         model = ModernTCN(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
+    elif method_name.lower() == 'TCN'.lower():
+
+        model = TCN(input_t_length,span_t_length,output_t_length,input_dim,input_dim,input_dim)
+        optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
+                               weight_decay=weight_decay)
+
     elif method_name.lower() == 'Timesnet'.lower():
         model = Timesnet(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
 
@@ -242,6 +254,7 @@ def main(args):
     for epoch in range(epoches):
         sum_loss = 0
         count_loss = 0
+        model.train()
         for batch in tqdm(train_dataloder):
 
             all_input = []
@@ -301,12 +314,12 @@ if __name__=="__main__":
     parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'])
     parser.add_argument('--length_output', default='12H', choices=['1H', '6H', '12H', '1D', '2D'])
 
-    parser.add_argument('--method', default='mlp') # S2IPLLM
+    parser.add_argument('--method', default='LSTM') # S2IPLLM
 
     parser.add_argument('--lr', default=1E-4)
-    parser.add_argument('--weight_decay', default=1E-6)
-    parser.add_argument('--epoches', default=10)
-    parser.add_argument('--batchsize', default=64)
+    parser.add_argument('--weight_decay', default=5E-5)
+    parser.add_argument('--epoches', default=50)
+    parser.add_argument('--batchsize', default=128)
 
 
     parser.add_argument('--device', default='cuda:0')
@@ -316,16 +329,13 @@ if __name__=="__main__":
 
     print(args)
     main(args)
-
-
-"""
-Namespace(dataset_path='../dataset/Processed', cache_dir='./cache', dataset='S_0', length_input='3D', length_span='0H', length_output='12H', method='mlp', lr=0.0001, weight_decay=1e-06, epoches=10, batchsize=64, device='cuda:4', seed=2025)
-mae: 0.09074809402227402
-mse: 0.06357620656490326
-rmse: 0.21887850761413574
-mape: 0.7743984460830688
-mspe: 504978.53125
-sedi: [np.float64(0.12422404289066219), np.float64(0.06115855801415139), np.float64(0.011836872554079992)]
-nse: -78.8651351928711
+"""Namespace(dataset_path='../dataset/Processed', cache_dir='./cache', dataset='S_0', length_input='3D', length_span='0H', length_output='12H', method='LSTM', lr=0.0001, weight_decay=1e-05, epoches=20, batchsize=128, device='cuda:1', seed=2025)
+mae: 0.27458810806274414
+mse: 0.39991286396980286
+rmse: 0.5617353320121765
+mape: inf
+mspe: inf
+sedi: [np.float64(0.03280722058807843), np.float64(0.009574707948169616), np.float64(0.0006751651393121441)]
+nse: -259.1132507324219
 
 """
