@@ -65,7 +65,7 @@ def NSE(pred,true,mean,std):
     model_mse = (pred-true)**2
     mean_mse = (true)**2
 
-    weighted_nse = 1 - model_mse / mean_mse
+    weighted_nse = 1 - model_mse.sum(axis=-1) / (mean_mse+1E-8).sum(axis=-1)
     weighted_nse = weighted_nse.mean()
     return weighted_nse.cpu()
 
