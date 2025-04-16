@@ -40,6 +40,29 @@ def SEDI(predicted_values, true_values, percentile):
     res = (np.array(pred_events_list)/(np.array(gt_events_list)+1E-4)).mean()
     return res
 
+def SEDI_sep(predicted_values, true_values, percentile):
+    # percentile = percentile.numpy()
+    # num_percentile = percentile.shape[-1]
+
+    gt_events_list = []
+    pred_events_list = []
+
+    # for i in range(num_percentile // 2):
+    gt_events_low = (true_values < percentile[:, 0].reshape(1,-1,1))
+    pred_events_low = np.sum(np.logical_and(predicted_values < percentile[:, 0].reshape(1,-1,1), gt_events_low), axis=(0, -1))
+
+    gt_events_high = (true_values > percentile[:, 1].reshape(1,-1,1))
+    pred_events_high = np.sum(
+        np.logical_and(predicted_values > percentile[:, 1].reshape(1,-1,1), gt_events_high), axis=(0, -1))
+
+    gt_events = np.sum(gt_events_low, axis=(0, -1)) + np.sum(gt_events_high, axis=(0, -1))
+
+    gt_events_list.append(gt_events)
+    pred_events_list.append(pred_events_high + pred_events_low)
+
+    return np.array([pred_events_list,gt_events_list])
+    # return res
+
 def interestingness_score(batch, mean, std):
     # mean = dataset.mean[:, None, 0].repeat(batch.num_graphs, 1).to(device)
     # std = dataset.std[:, None, 0].repeat(batch.num_graphs, 1).to(device)
@@ -114,3 +137,50 @@ def cal_metrics(pred, true, mean, std, percents=None):
     metric_dict['nse'] = nse
     return metric_dict
 
+
+def cal_metrics_sperate(pred, true,  mean, std, percents=None):
+    metric_dict = {}
+
+    if isinstance(pred,np.ndarray):
+        pred_np = pred
+        true_np = true
+    else:
+        pred_np = pred.cpu().detach().numpy()
+        true_np = true.cpu().detach().numpy()
+
+    if isinstance(mean,np.ndarray):
+        mean_np = mean
+        std_np = std
+    else:
+        mean_np = mean.cpu().detach().numpy()
+        std_np = std.cpu().detach().numpy()
+
+
+    mae = MAE(pred_np, true_np)
+    metric_dict['mae'] = mae
+    mse = MSE(pred_np, true_np)
+    metric_dict['mse'] = mse
+    rmse = RMSE(pred_np, true_np)
+    metric_dict['rmse'] = rmse
+    mape = MAPE(pred_np, true_np)
+    metric_dict['mape'] = mape
+    mspe = MSPE(pred_np, true_np)
+    metric_dict['mspe'] = mspe
+
+    if not percents is None:
+        sedi_list = []
+
+        if isinstance(percents[0], np.ndarray):
+            pass
+        else:
+            percents = [percents[0].cpu().numpy(),percents[1].cpu().numpy(),percents[2].cpu().numpy()]
+
+
+        for mask in percents:
+            sedi = SEDI_sep(pred_np, true_np, mask).transpose(1,2,0)
+            sedi_list.append(sedi)
+        metric_dict['sedi'] = sedi_list
+
+    nse = NSE(pred_np,true_np,mean_np,std_np)
+    metric_dict['nse'] = nse
+    return metric_dict
