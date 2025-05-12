@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 ## Training
 
-To train the model(s) in the paper, run main.py(load the whole dataset) or main_three_parts.py(load three interest parts). We provide the explanations of each argument.
+To train the model(s) in the paper, run main.py(load the whole dataset) or main_three_parts.py(load three interest parts). We provide the explanations of each argument. We provide the detailed hyperparameters in run.sh.
 ```
 python main.py --dataset_path [PATH] --cache_dir [cache_PATH] --dataset [split]  --length_input [Lookback]  --length_output [Prediction] \
  --method [model-name] --lr [learning_rate] --weight_decay [Regularization] --epoches [train-epoch] --bachsize [B] --store [Store-model-dict] \
@@ -46,84 +46,51 @@ python main.py --dataset_path [PATH] --cache_dir [cache_PATH] --dataset [split] 
 
 To evaluate the model, the eval.py can be used. Notably, in training main.py/main_three_parts.py, the evaluation results are also available. We provide some pretrain state dict for reproduce our results. The pretrain model state dicts are available on [PlaceHolder](https://)
 ```eval
-python eval.py --model-file mymodel.pth --benchmark imagenet
+python eval.py --dataset_path [PATH] --cache_dir [cache_PATH] --dataset [split]  --length_input [Lookback]  --length_output [Prediction] \
+ --bachsize [B] --method [model-name] --device [device] --seed [seed]
 ```
 
->📋  Describe how to evaluate the trained models on benchmarks reported in the paper, give commands that produce the results (section below).
+<!-- >📋  Describe how to evaluate the trained models on benchmarks reported in the paper, give commands that produce the results (section below). -->
 
 ## Pre-trained Models
+We provide the pretrain model to reporduce the results reported in our paper. Please refer to [google drive](http://placeholder).
 
-You can download pretrained models here:
-
-- [My awesome model](https://drive.google.com/mymodel.pth) trained on ImageNet using parameters x,y,z. 
-
->📋  Give a link to where/how the pretrained models can be downloaded and how they were trained (if applicable).  Alternatively you can have an additional column in your results table with a link to the models.
+<!-- >📋  Give a link to where/how the pretrained models can be downloaded and how they were trained (if applicable).  Alternatively you can have an additional column in your results table with a link to the models. -->
 
 ## Results
 
-Our model achieves the following performance on :
+The detailed results are provided in our paper. The part benchmark results on three interest parts:
 
-### [Image Classification on ImageNet](https://paperswithcode.com/sota/image-classification-on-imagenet)
+![image](pics/mae_mse.PNG)
 
-| Model name         | Top 1 Accuracy  | Top 5 Accuracy |
-| ------------------ |---------------- | -------------- |
-| My awesome model   |     85%         |      95%       |
+![image](pics/SEDI.PNG)
 
->📋  Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it. 
+<!-- >📋  Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it.  -->
 
 
-## Contributing
+<!-- ## Contributing -->
 
->📋  Pick a licence and describe how to contribute to your code repository. 
-
-
+<!-- >📋  Pick a licence and describe how to contribute to your code repository.  -->
 
 
+## Acknowledgement
 
-# South Florida Flood dataset & Forcasting Benchmark
+Thanks for the help of the South Florida Water Management District(SFWMD) in collecting the raw dataset. Thanks for the support and help of coauthors. This repo borrowed some code from third-party repo and library. Thanks for the contributors. Here is the detailed link of these repos.
 
-This dataset is a collection of South Florida water stage dataset.
-
---------------------------------------------
-## dataset download
-
-- Onedrive
-- trustai4s 
-
---------------------------------------------
-## development
-
-- enviroment based on the [NeuralForecast](https://github.com/Nixtla/neuralforecast/tree/main?tab=readme-ov-file)
-- follow the src/demo pipeline
-- complete the model file and put in folder in src/models
-- create your own test file and test
-
-> Please make sure every model have the same apis for train and evaluation. We will need one file to run all the models.
-
---------------------------------------------
-## run & evaluate 
-
-- set SEED = 2025 , to make sure reproducibility 
-- use adamW as default optimizer
-- use the default hyperparmeters according to the paper or their code 
-- record the running command and put it into run.sh 
-
-> Please make sure the commands are recorded. We will need them for reproduction.
+- NeuralForecast: [https://github.com/Nixtla/neuralforecast](https://github.com/Nixtla/neuralforecast)
+- Time-Series-Library: [https://github.com/thuml/Time-Series-Library](https://github.com/thuml/Time-Series-Library)
+- TCN: [https://github.com/locuslab/TCN/tree/master](https://github.com/locuslab/TCN/tree/master)
+- ModernTCN: [https://github.com/luodhhh/ModernTCN](https://github.com/luodhhh/ModernTCN)
+- FourierGNN: [https://github.com/aikunyi/FourierGNN](https://github.com/aikunyi/FourierGNN)
+- StemGNN: [https://github.com/microsoft/StemGNN](https://github.com/microsoft/StemGNN)
+- One Fits All: [https://github.com/DAMO-DI-ML/NeurIPS2023-One-Fits-All](https://github.com/DAMO-DI-ML/NeurIPS2023-One-Fits-All)
+- AutoTimes: [https://github.com/thuml/AutoTimes/tree/main](https://github.com/thuml/AutoTimes/tree/main)
+- Neural-Flood-Forecasting: [https://github.com/nkirschi/neural-flood-forecasting](https://github.com/nkirschi/neural-flood-forecasting)
+- TS2Vec: 
 
 
---------------------------------------------
-## Git
-
-- (init code)git clone / git pull 
-- (new local branch) git branch [branch-name]
-- (switch to new branch) git checkout [branch-name]
-- (work, add your code)  git add 
-- (commit) git commit 
-- (switch to main branch) git checkout [main]
-- (update main branch) git pull
-- (merge local branch to main) git merge [branch-name]
-- (push to server)git push
-
-> If you already have a local branch, first update main, then merge main to local branch. 
-
-
+## Citation
+If this repo is useful for you, please consider citing our paper:
+```
+PlaceHolder
+```

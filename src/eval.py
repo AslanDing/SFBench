@@ -301,9 +301,6 @@ def main_parts(args):
     length_output = args.length_output
     batch_size = args.batchsize
     device = args.device
-    learning_rate = args.lr
-    weight_decay = args.weight_decay
-    epoches = args.epoches
     method_name = args.method
     cache_dir = args.cache_dir
     store = args.store
@@ -418,6 +415,7 @@ if __name__=="__main__":
     parser.add_argument('--length_output', default='2D', choices=['1H', '6H', '12H', '1D', '2D'])
 
     parser.add_argument('--method', default='gcn')
+    parser.add_argument('--batchsize', default=64)
 
     parser.add_argument('--store', default=False)
     parser.add_argument('--part', default=False)  # whole dataset or part
