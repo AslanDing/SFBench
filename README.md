@@ -7,7 +7,7 @@ This repository is the official implementation of [SF$^2$Bench](https://arxiv.or
 <!-- >📋  Optional: include a graphic explaining your approach/main result, bibtex entry, link to demos, blog posts and tutorials -->
 
 ## Dataset
-Please download the dataset from [Placeholder]() and Unzip to dataset folder. The detail information of each file is provided in [Dataset.md](./dataset/Dataset.md)
+Please download the dataset from [ https://doi.org/10.7910/DVN/TU5UXE]( https://doi.org/10.7910/DVN/TU5UXE) and Unzip to dataset folder. The detail information of each file is provided in [Dataset.md](./dataset/Dataset.md)
 
 
 ## Requirements
@@ -21,18 +21,30 @@ pip install -r requirements.txt
 
 ## Training
 
-To train the model(s) in the paper, run this command:
-
-```train
-python train.py --input-data <path_to_data> --alpha 10 --beta 20
+To train the model(s) in the paper, run main.py(load the whole dataset) or main_three_parts.py(load three interest parts). We provide the explanations of each argument.
 ```
+python main.py --dataset_path [PATH] --cache_dir [cache_PATH] --dataset [split]  --length_input [Lookback]  --length_output [Prediction] \
+ --method [model-name] --lr [learning_rate] --weight_decay [Regularization] --epoches [train-epoch] --bachsize [B] --store [Store-model-dict] \
+ --device [device] --seed [seed]
+```
+- **dataset_path**: the dir path of dataset
+- **cache_dir**: the dir for save the model state dict
+- **length_input**: the length of lookback window
+- **length_output**: the length of prediction
+- **method**: which architecture, “mlp,tcn,gcn,lstm” for the whole dataset, "mlp,tcn,gcn,lstm,NLinear,TSMixer,GPT4TS,AutoTimes,DeepAR,DilatedRNN,stemGNN,FourierGNN,ModernTCN,Timesnet,PatchTST,iTransformer" for the three parts dataset
+- **lr**: learning rate 
+- **weight_decay**: regularization weight
+- **epoches**: training epoches
+- **bachsize**: batch size
+- **store**: store the model state dict or not 
+- **device**: cpu or cuda
+- **seed**: random seeds
 
->📋  Describe how to train the models, with example commands on how to train the models in your paper, including the full training procedure and appropriate hyperparameters.
+<!-- >📋  Describe how to train the models, with example commands on how to train the models in your paper, including the full training procedure and appropriate hyperparameters. -->
 
 ## Evaluation
 
-To evaluate my model on ImageNet, run:
-
+To evaluate the model, the eval.py can be used. Notably, in training main.py/main_three_parts.py, the evaluation results are also available. We provide some pretrain state dict for reproduce our results. The pretrain model state dicts are available on [PlaceHolder](https://)
 ```eval
 python eval.py --model-file mymodel.pth --benchmark imagenet
 ```

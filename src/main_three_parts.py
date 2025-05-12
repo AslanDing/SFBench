@@ -236,7 +236,13 @@ def main(args):
     epoches = args.epoches
     method_name = args.method
     cache_dir = args.cache_dir
-    
+    store = args.store
+
+    store_dir = os.path.join(cache_dir,f'{method_name}_{dataset}_{length_input}_{length_output}')
+    if store and not os.path.exists(store_dir):
+        os.makedirs(store_dir)
+        store_path = os.path.join(store_dir,"model_state_%d.pth")
+
     dataset_dict, dataloader_dict = load_dataset_part_loader(data_dir,dataset,
                                 length_input,length_span,length_output,batch_size,cache_dir=cache_dir,device=device)
 
@@ -382,7 +388,7 @@ def main(args):
                 input = torch.concat(all_input,dim=1)
                 output = torch.concat(all_output,dim=1)
 
-                pred = model(input.to(device),edge_index=edge_index.to(device))
+                pred = model(input.to(device))
                 if pred.shape[1] == input.shape[1]:
                     loss = criterion(pred[:,water_start:water_end,:], output[:,water_start:water_end,:].to(device))
                 else:
@@ -396,21 +402,23 @@ def main(args):
                 # break
             print(f'{epoch} loss:{sum_loss/count_loss}')
 
-            metric_dict = eval(model,val_dataloder,dataset_dict['val'][part_i],device,batch_size)
-            test_metric_dict = eval(model, test_dataloder, dataset_dict['test'][part_i], device, batch_size)
+            metric_dict = eval(model,val_dataloder,dataset_dict['val'][part_i])
+            test_metric_dict = eval(model, test_dataloder, dataset_dict['test'][part_i])
             print("valid test :",metric_dict,test_metric_dict)
             if metric_dict<best_eval:
                 best_eval = metric_dict
                 best_model_dict = model.state_dict()
 
         model.load_state_dict(best_model_dict)
-        test_metric_dict = evaluation_sep(model,test_dataloder,dataset_dict['test'][part_i],device,batch_size)
+        test_metric_dict = evaluation_sep(model,test_dataloder,dataset_dict['test'][part_i])
         metrics_list.append(test_metric_dict)
         for idx,metric_d in enumerate(metrics_list):
             print("part i : ", idx)
             for key in metric_d.keys():
                 print(f'{key}: {metric_d[key]}')
         
+        if store:
+            torch.save(best_model_dict,store_path%part_i)
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(prog='Dataset Benchmark')
@@ -429,8 +437,9 @@ if __name__=="__main__":
     parser.add_argument('--epoches', default=300)
     parser.add_argument('--batchsize', default=64)
 
+    parser.add_argument('--store', default=False)
 
-    parser.add_argument('--device', default='cuda:1')
+    parser.add_argument('--device', default='cpu')
     parser.add_argument('--seed', default=2025, type=int)
 
     args = parser.parse_args()
