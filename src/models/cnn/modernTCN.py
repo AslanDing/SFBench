@@ -317,13 +317,13 @@ class Stage(nn.Module):
         return x
 
 
-class ModernTCN(nn.Module):
+class modernTCN(nn.Module):
     def __init__(self,patch_size,patch_stride, stem_ratio, downsample_ratio, ffn_ratio, num_blocks, large_size, small_size, dims, dw_dims,
                  nvars, small_kernel_merged=False, backbone_dropout=0.1, head_dropout=0.1, use_multi_scale=True, revin=True, affine=True,
                  subtract_last=False, freq=None, seq_len=512, c_in=7, individual=False, target_window=96):
 
-        super(ModernTCN, self).__init__()
-
+        super(modernTCN, self).__init__()
+        print(num_blocks)
         # RevIN
         self.revin = revin
         if self.revin: self.revin_layer = RevIN(c_in, affine=affine, subtract_last=subtract_last)
@@ -398,6 +398,7 @@ class ModernTCN(nn.Module):
                 if N % self.downsample_ratio != 0:
                     pad_len = self.downsample_ratio - (N % self.downsample_ratio)
                     x = torch.cat([x, x[:, :, -pad_len:]],dim=-1)
+            x_red = x
             x = self.downsample_layers[i](x)
             _, D_, N_ = x.shape
             x = x.reshape(B, M, D_, N_)
@@ -428,19 +429,21 @@ class ModernTCN(nn.Module):
                 m.merge_kernel()
 
 
-class modernTCN(nn.Module):
+class ModernTCN(nn.Module):
     def __init__(self, input_length, span_length, output_length, enc_in, dec_in,  c_out,
                  stem_ratio = 6, downsample_ratio=2, ffn_ratio=1, num_blocks=[2],
-                 large_size=[51],small_size=[5],dims=[2048], dw_dims = [256,256,256,256],
-                 small_kernel_merged = False, dropout=0.0 ,head_dropout = 0.0,use_multi_scale=False,
+                 large_size=[51],small_size=[5],dims=[64,64,64,64], dw_dims = [256,256,256,256], nvars=None,
+                 small_kernel_merged = False, dropout=0.4 ,head_dropout = 0.0,use_multi_scale=False,
                  revin = 1, affine=0,subtract_last=0,freq='h',individual=0,kernel_size=25,
-                 patch_size=16,patch_stride=8,decomposition =0):
-        super(modernTCN, self).__init__()
+                 patch_size=8,patch_stride=4,decomposition =0):
+        super(ModernTCN, self).__init__()
         # hyper param
         self.stem_ratio = stem_ratio
         self.downsample_ratio = downsample_ratio
         self.ffn_ratio = ffn_ratio
         self.num_blocks = num_blocks
+        print(self.num_blocks)
+        print(num_blocks)
         self.large_size = large_size
         self.small_size = small_size
         self.dims = dims
@@ -470,14 +473,14 @@ class modernTCN(nn.Module):
         self.decomposition = decomposition
         if self.decomposition:
             self.decomp_module = series_decomp(self.kernel_size)
-            self.model_res = ModernTCN(patch_size=self.patch_size,patch_stride=self.patch_stride,stem_ratio=self.stem_ratio, downsample_ratio=self.downsample_ratio, ffn_ratio=self.ffn_ratio, num_blocks=self.num_blocks, large_size=self.large_size, small_size=self.small_size, dims=self.dims, dw_dims=self.dw_dims,
+            self.model_res = modernTCN(patch_size=self.patch_size,patch_stride=self.patch_stride,stem_ratio=self.stem_ratio, downsample_ratio=self.downsample_ratio, ffn_ratio=self.ffn_ratio, num_blocks=self.num_blocks, large_size=self.large_size, small_size=self.small_size, dims=self.dims, dw_dims=self.dw_dims,
                  nvars=self.nvars, small_kernel_merged=self.small_kernel_merged, backbone_dropout=self.drop_backbone, head_dropout=self.drop_head, use_multi_scale=self.use_multi_scale, revin=self.revin, affine=self.affine,
                  subtract_last=self.subtract_last, freq=self.freq, seq_len=self.seq_len, c_in=self.c_in, individual=self.individual, target_window=self.target_window)
-            self.model_trend = ModernTCN(patch_size=self.patch_size,patch_stride=self.patch_stride,stem_ratio=self.stem_ratio, downsample_ratio=self.downsample_ratio, ffn_ratio=self.ffn_ratio, num_blocks=self.num_blocks, large_size=self.large_size, small_size=self.small_size, dims=self.dims, dw_dims=self.dw_dims,
+            self.model_trend = modernTCN(patch_size=self.patch_size,patch_stride=self.patch_stride,stem_ratio=self.stem_ratio, downsample_ratio=self.downsample_ratio, ffn_ratio=self.ffn_ratio, num_blocks=self.num_blocks, large_size=self.large_size, small_size=self.small_size, dims=self.dims, dw_dims=self.dw_dims,
                  nvars=self.nvars, small_kernel_merged=self.small_kernel_merged, backbone_dropout=self.drop_backbone, head_dropout=self.drop_head, use_multi_scale=self.use_multi_scale, revin=self.revin, affine=self.affine,
                  subtract_last=self.subtract_last, freq=self.freq, seq_len=self.seq_len, c_in=self.c_in, individual=self.individual, target_window=self.target_window)
         else:
-            self.model = ModernTCN(patch_size=self.patch_size,patch_stride=self.patch_stride,stem_ratio=self.stem_ratio, downsample_ratio=self.downsample_ratio, ffn_ratio=self.ffn_ratio, num_blocks=self.num_blocks, large_size=self.large_size, small_size=self.small_size, dims=self.dims, dw_dims=self.dw_dims,
+            self.model = modernTCN(patch_size=self.patch_size,patch_stride=self.patch_stride,stem_ratio=self.stem_ratio, downsample_ratio=self.downsample_ratio, ffn_ratio=self.ffn_ratio, num_blocks=self.num_blocks, large_size=self.large_size, small_size=self.small_size, dims=self.dims, dw_dims=self.dw_dims,
                  nvars=self.nvars, small_kernel_merged=self.small_kernel_merged, backbone_dropout=self.drop_backbone, head_dropout=self.drop_head, use_multi_scale=self.use_multi_scale, revin=self.revin, affine=self.affine,
                  subtract_last=self.subtract_last, freq=self.freq, seq_len=self.seq_len, c_in=self.c_in, individual=self.individual, target_window=self.target_window)
 

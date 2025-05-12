@@ -1,22 +1,22 @@
 {
     "WATER": [
-        "BCYPR7",
-        "CORK",
         "6MI.DR.T_T",
-        "COCOH.95_H"
+        "COCOH.95_H",
+        "CORK",
+        "BCYPR7"
     ],
     "WELL": [
         "FT.DENAUDE",
         "FTDN-S"
     ],
     "RAIN": [
+        "GOLDFS2",
+        "ALVA FAR_R",
+        "GOLD75",
         "LEHIGH W_R",
         "CORK.HQ_R",
         "COLLIER_R",
-        "ALVA FAR_R",
-        "GOLDFS2",
-        "CORKISL",
-        "GOLD75"
+        "CORKISL"
     ],
     "PUMP": [],
     "GATE": []

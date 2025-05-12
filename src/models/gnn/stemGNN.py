@@ -180,8 +180,5 @@ class stemGNN(nn.Module):
             result.append(forecast)
         forecast = result[0] + result[1]
         forecast = self.fc(forecast)
-        return forecast[:,:self.out_unit,-self.out_length:]
-        # if forecast.size()[-1] == 1:
-        #     return forecast.unsqueeze(1).squeeze(-1), attention
-        # else:
-        #     return forecast.permute(0, 2, 1).contiguous(), attention
+        return forecast
+    

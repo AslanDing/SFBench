@@ -6,26 +6,34 @@ from sklearn.utils.fixes import percentile
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+import json
 from torch.utils.data import Dataset,DataLoader
 
 
 splits = ['S_0','S_1', 'S_2','S_3','S_4','S_5','S_6','S_7']
-t_inputs = {'1D':[48,48,  144, 144, 144, 144, 144, 144],
-            '2D':[96,96,  288, 288, 288, 288, 288, 288],
-            '3D':[144,144,  432, 432, 432, 432, 432, 432],
-            '1W':[336,336, 1008,1008,1008,1008,1008,1008],  # 1 week
-            '2W':[672,672, 2016,2016,2016,2016,2016,2016],
-            '3W':[1008,1008, 3024,3024,3024,3024,3024,3024],
-            '4W':[1344,1344, 4032,4032,4032,4032,4032,4032]}
-t_spans = {'1W':[336,336, 1008,1008,1008,1008,1008,1008],
-          '1D':[48,48,  144, 144, 144, 144, 144, 144],
-          '1H':[2,2,  6, 6, 6, 6, 6, 6],
+t_inputs = {'1D':[24,24,  24, 24, 24, 24, 24, 24],
+            '2D':[48,48,  48, 48, 48, 48, 48, 48],
+            '3D':[72,72,  72, 72, 72, 72, 72, 72],
+            '4D':[96,96,  96, 96, 96, 96, 96, 96],
+            '5D':[120,120, 120,120,120,120,120,120],
+            '6D':[144,144, 144,144,144,144,144,144],
+            '8D':[192,192, 192,192,192,192,192,192],
+            '10D':[240,240, 240,240,240,240,240,240],
+            '1W':[168,168, 168,168,168,168,168,168]}
+
+t_spans = {'1W':[168,168, 168,168,168,168,168,168],
+          '1D':[24,24,  24, 24, 24, 24, 24, 24],
+          '1H':[1,1,  1, 1, 1, 1, 1, 1],
           '0H':[0,0,  0, 0, 0, 0, 0, 0]}
-t_outputs = {'2D':[96,96,  288, 288, 288, 288, 288, 288],
-            '1D':[48,48,  144, 144, 144, 144, 144, 144],
-             '12H': [24, 24, 72, 72, 72, 72, 72, 72],
-             '6H':[12,12,  36, 36, 36, 36, 36, 36],
-             '1H':[2,2,  6, 6, 6, 6, 6, 6]}
+t_outputs = {
+            '1D':[24,24,  24, 24, 24, 24, 24, 24],
+            '2D':[48,48,  48, 48, 48, 48, 48, 48],
+            '3D':[72,72,  72, 72, 72, 72, 72, 72],
+            '5D':[120,120, 120,120,120,120,120,120],
+            '1W':[168,168, 168,168,168,168,168,168],
+             '12H': [12,12, 12,12,12,12,12,12],
+             '6H':[6,6,  6,6,6,6,6,6],
+             '1H':[1,1,  1,1,1,1,1,1]}
 splits_dates = {'S_0': {'train': ['1985-01-01 00:00:00','1987-12-31 23:59:59'],
                        'val': ['1988-01-01 00:00:00', '1988-12-31 23:59:59'],
                        'test': ['1989-01-01 00:00:00','1989-12-31 23:59:59']},
@@ -50,6 +58,9 @@ splits_dates = {'S_0': {'train': ['1985-01-01 00:00:00','1987-12-31 23:59:59'],
                 'S_7': {'train': ['2020-01-01 00:00:00', '2021-12-31 23:59:59'],
                        'val': ['2022-01-01 00:00:00', '2022-12-31 23:59:59'],
                        'test': ['2023-01-01 00:00:00', '2023-12-31 23:59:59']}}
+
+x_str = 'X COORD'
+y_str = 'Y COORD'
 
 def sort_files(dir,split):
 
@@ -86,42 +97,39 @@ def sort_files(dir,split):
 
 class SFFLOODDataset(Dataset):
     def __init__(self, dir, split, length_input,length_span,length_output,
-                    training_datetime,device='cpu',ESP=1E-4):
+                    training_datetime,device='cpu',ESP=1E-4,time_emb=False):
         super().__init__()
+        self.time_emb = time_emb
         self.device = device
-        (self.all_timeseries, self.all_timemasks, self.all_stationnames,
+        (self.all_timeseries, self.all_timemasks, self.all_stationnames,self.all_locations,
          self.percentile_mask_10, self.percentile_mask_5,
-         self.percentile_mask_1) = self.load_csv_files(dir,split, training_datetime)
+         self.percentile_mask_1,self.datetime_emb) = self.load_csv_files(dir,split, training_datetime)
         self.length = self.all_timeseries['WATER'][0].shape[0] - length_input - length_span - length_output
         self.length_input = length_input
         self.length_span = length_span
         self.length_output = length_output
-        self.ESP = ESP
-
+        self.ESP=ESP
     def __len__(self):
         return self.length
 
     def __getitem__(self, idx):
         output_dict = {}
+
+        if self.time_emb:
+            output_dict['timeenc_input'] = self.datetime_emb[:, idx:idx + self.length_input]
+            output_dict['timeenc_output'] = self.datetime_emb[:,
+                                            idx + self.length_input + self.length_span:idx + self.length_input + self.length_span + self.length_output]
+
         for key in self.all_timeseries.keys():
             data = self.all_timeseries[key]
             mean = self.all_timeseries_std_mean[key]['mean']
             std = self.all_timeseries_std_mean[key]['std']
             data_mask = self.all_timemasks[key]
-            # data_mask_per10 = self.percentile_mask_10[key]
-            # data_mask_per5 = self.percentile_mask_5[key]
-            # data_mask_per1 = self.percentile_mask_1[key]
+
             output_dict[key+'_input'] = (data[:,idx:idx+self.length_input] - mean)/std
             output_dict[key+'_input_mask'] = data_mask[:,idx:idx+self.length_input]
             output_dict[key+'_output'] = (data[:,idx+self.length_input+self.length_span:idx+self.length_input+self.length_span+self.length_output] - mean)/std
             output_dict[key+'_output_mask'] = data_mask[:,idx+self.length_input+self.length_span:idx+self.length_input+self.length_span+self.length_output]
-
-            # output_dict[key + '_output_per10'] = data_mask_per10[:,
-            #                                     idx + self.length_input + self.length_span:idx + self.length_input + self.length_span + self.length_output]
-            # output_dict[key + '_output_per5'] = data_mask_per5[:,
-            #                                     idx + self.length_input + self.length_span:idx + self.length_input + self.length_span + self.length_output]
-            # output_dict[key + '_output_per1'] = data_mask_per1[:,
-            #                                     idx + self.length_input + self.length_span:idx + self.length_input + self.length_span + self.length_output]
 
         return output_dict
 
@@ -138,12 +146,25 @@ class SFFLOODDataset(Dataset):
 
         for key in all_timeseries_std_mean.keys():
             timeseries_data = all_timeseries[key]
-            mean = torch.mean(timeseries_data,dim=1)
-            std = torch.std(timeseries_data, dim=1)
-            std = torch.where(std<self.ESP, torch.ones_like(std), std)
+            tmp = timeseries_data 
+            mean = torch.mean(tmp,dim=1)
+            std = torch.std(tmp, dim=1)
+            std = torch.where(std<self.ESP,torch.ones_like(std),std)
             all_timeseries_std_mean[key] = {'mean':mean.view(-1,1),'std':std.view(-1,1)}
 
         return all_timeseries_std_mean
+
+    def time_encoding(self,datetime):
+
+        df_stamp = pd.to_datetime(datetime)
+        df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
+        df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
+        df_stamp['weekday'] = df_stamp.date.apply(lambda row: row.weekday(), 1)
+        df_stamp['hour'] = df_stamp.date.apply(lambda row: row.hour, 1)
+        df_stamp['minute'] = df_stamp.date.apply(lambda row: row.minute, 1)
+        df_stamp['minute'] = df_stamp.minute.map(lambda x: x // 10)
+        data_stamp = df_stamp.drop(['TIMESTAMP'], 1).values
+        return data_stamp
 
     def load_csv_files(self,dir,split,training_datetime):
         all_files = sort_files(dir, split)
@@ -181,6 +202,15 @@ class SFFLOODDataset(Dataset):
                             'WELL': None,
                             'PUMP': None,
                             'GATE': None}
+
+        all_station_loc = {'WATER': None,
+                            'RAIN': None,
+                            'WELL': None,
+                            'PUMP': None,
+                            'GATE': None}
+
+        datetime = None
+
         for key in all_timeseries.keys():
             print('Load time series : ', key)
             station_name_list = []
@@ -189,6 +219,8 @@ class SFFLOODDataset(Dataset):
             percentile_mask_10_list = []
             percentile_mask_5_list = []
             percentile_mask_1_list = []
+            gate_Latitude = []
+            gate_Longitude = []
             files_dict = all_files[key]
             for station_name in tqdm(files_dict.keys()):
                 csv_file_path = files_dict[station_name]['csv']
@@ -197,6 +229,13 @@ class SFFLOODDataset(Dataset):
                 if data_frame['INTERPOLATED_VALUE'].isnull().any():
                     print('station_name:',station_name)
                     continue
+
+                json_file = files_dict[station_name]['json']
+                with open(json_file) as fp:
+                    dd = json.load(fp)
+                    gate_Latitude.append(float(dd[x_str]))
+                    gate_Longitude.append(float(dd[y_str]))
+
 
                 timeseries_data = data_frame['INTERPOLATED_VALUE'].values
                 lower_threshold = np.percentile(timeseries_data, 5)
@@ -237,17 +276,21 @@ class SFFLOODDataset(Dataset):
             all_timeseries[key] = torch.from_numpy(timeseries_list).float().to(self.device)
             all_timemasks[key] = torch.from_numpy(timemasks_list).float().to(self.device)
             all_stationnames[key] = station_name_list
-        return (all_timeseries, all_timemasks, all_stationnames,
-                percentile_mask_10, percentile_mask_5, percentile_mask_1)
+            all_station_loc[key] = np.array([gate_Latitude,gate_Longitude])
+
+        datetime_embedding = self.time_encoding(datetime)
+        return (all_timeseries, all_timemasks, all_stationnames,all_station_loc,
+                percentile_mask_10, percentile_mask_5, percentile_mask_1,datetime_embedding)
 
 class SFFLOODDatasetP(Dataset):
     def __init__(self, dir, split,part, length_input,length_span,length_output,
-                    training_datetime,device='cpu',ESP=1E-4):
+                    training_datetime,device='cpu',ESP=1E-4,time_emb=False):
         super().__init__()
+        self.time_emb = time_emb
         self.device = device
-        (self.all_timeseries, self.all_timemasks, self.all_stationnames,
+        (self.all_timeseries, self.all_timemasks, self.all_stationnames,self.all_locations,
          self.percentile_mask_10, self.percentile_mask_5,
-         self.percentile_mask_1) = self.load_csv_files(dir,split,part, training_datetime)
+         self.percentile_mask_1,self.datetime_emb) = self.load_csv_files(dir,split,part, training_datetime)
         self.length = self.all_timeseries['WATER'][0].shape[0] - length_input - length_span - length_output
         self.length_input = length_input
         self.length_span = length_span
@@ -259,6 +302,12 @@ class SFFLOODDatasetP(Dataset):
 
     def __getitem__(self, idx):
         output_dict = {}
+        
+        if self.time_emb:
+            output_dict['timeenc_input'] = self.datetime_emb[:, idx:idx + self.length_input]
+            output_dict['timeenc_output'] = self.datetime_emb[:,
+                                            idx + self.length_input + self.length_span:idx + self.length_input + self.length_span + self.length_output]
+
         for key in self.all_timeseries.keys():
             data = self.all_timeseries[key]
             if data is None:
@@ -266,25 +315,28 @@ class SFFLOODDatasetP(Dataset):
             mean = self.all_timeseries_std_mean[key]['mean']
             std = self.all_timeseries_std_mean[key]['std']
             data_mask = self.all_timemasks[key]
-            # data_mask_per10 = self.percentile_mask_10[key]
-            # data_mask_per5 = self.percentile_mask_5[key]
-            # data_mask_per1 = self.percentile_mask_1[key]
             output_dict[key+'_input'] = (data[:,idx:idx+self.length_input] - mean)/std
             output_dict[key+'_input_mask'] = data_mask[:,idx:idx+self.length_input]
             output_dict[key+'_output'] = (data[:,idx+self.length_input+self.length_span:idx+self.length_input+self.length_span+self.length_output] - mean)/std
             output_dict[key+'_output_mask'] = data_mask[:,idx+self.length_input+self.length_span:idx+self.length_input+self.length_span+self.length_output]
 
-            # output_dict[key + '_output_per10'] = data_mask_per10[:,
-            #                                     idx + self.length_input + self.length_span:idx + self.length_input + self.length_span + self.length_output]
-            # output_dict[key + '_output_per5'] = data_mask_per5[:,
-            #                                     idx + self.length_input + self.length_span:idx + self.length_input + self.length_span + self.length_output]
-            # output_dict[key + '_output_per1'] = data_mask_per1[:,
-            #                                     idx + self.length_input + self.length_span:idx + self.length_input + self.length_span + self.length_output]
-
         return output_dict
 
     def set_std_mean(self,std_mean_dict):
         self.all_timeseries_std_mean = std_mean_dict
+
+    def time_encoding(self,datetime):
+
+        df_stamp = pd.to_datetime(datetime)
+        df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
+        df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
+        df_stamp['weekday'] = df_stamp.date.apply(lambda row: row.weekday(), 1)
+        df_stamp['hour'] = df_stamp.date.apply(lambda row: row.hour, 1)
+        df_stamp['minute'] = df_stamp.date.apply(lambda row: row.minute, 1)
+        df_stamp['minute'] = df_stamp.minute.map(lambda x: x // 10)
+        data_stamp = df_stamp.drop(['TIMESTAMP'], 1).values
+        return data_stamp
+
 
     def calculate_normalization(self,all_timeseries):
 
@@ -297,10 +349,10 @@ class SFFLOODDatasetP(Dataset):
         for key in all_timeseries_std_mean.keys():
             if all_timeseries[key] is None:
                 continue
-            timeseries_data = all_timeseries[key]
-            mean = torch.mean(timeseries_data,dim=1)
-            std = torch.std(timeseries_data, dim=1)
-            std = torch.where(std<self.ESP, torch.ones_like(std), std)
+            tmp = all_timeseries[key]
+            mean = torch.mean(tmp,dim=1)
+            std = torch.std(tmp, dim=1)
+            std = torch.where(std<self.ESP,torch.ones_like(std),std)
             all_timeseries_std_mean[key] = {'mean':mean.view(-1,1),'std':std.view(-1,1)}
 
         return all_timeseries_std_mean
@@ -345,6 +397,15 @@ class SFFLOODDatasetP(Dataset):
                             'WELL': None,
                             'PUMP': None,
                             'GATE': None}
+
+        all_station_loc = {'WATER': None,
+                            'RAIN': None,
+                            'WELL': None,
+                            'PUMP': None,
+                            'GATE': None}
+
+        datetime = None
+
         for key in all_timeseries.keys():
             print('Load time series : ', key)
             station_name_list = []
@@ -353,6 +414,8 @@ class SFFLOODDatasetP(Dataset):
             percentile_mask_10_list = []
             percentile_mask_5_list = []
             percentile_mask_1_list = []
+            gate_Latitude = []
+            gate_Longitude = []
             files_dict = all_files[key]
             filter_name = files_fliter_dict[key]
             if len(filter_name)<1:
@@ -366,6 +429,16 @@ class SFFLOODDatasetP(Dataset):
                 if data_frame['INTERPOLATED_VALUE'].isnull().any():
                     print('station_name:',station_name)
                     continue
+
+                if datetime is None:
+                    data_frame = data_frame['TIMESTAMP']
+
+                json_file = files_dict[station_name]['json']
+                with open(json_file) as fp:
+                    dd = json.load(fp)
+                    gate_Latitude.append(float(dd[x_str]))
+                    gate_Longitude.append(float(dd[y_str]))
+
 
                 timeseries_data = data_frame['INTERPOLATED_VALUE'].values
                 lower_threshold = np.percentile(timeseries_data, 5)
@@ -405,15 +478,17 @@ class SFFLOODDatasetP(Dataset):
             percentile_mask_1[key] = torch.from_numpy(percentile_mask_1_list).float().to(self.device)
             all_timeseries[key] = torch.from_numpy(timeseries_list).float().to(self.device)
             all_timemasks[key] = torch.from_numpy(timemasks_list).float().to(self.device)
+            all_station_loc[key] = np.array([gate_Latitude,gate_Longitude])
             all_stationnames[key] = station_name_list
-        return (all_timeseries, all_timemasks, all_stationnames,
-                percentile_mask_10, percentile_mask_5, percentile_mask_1)
 
+        datetime_embedding = self.time_encoding(datetime)
+        return (all_timeseries, all_timemasks, all_stationnames,all_station_loc,
+                percentile_mask_10, percentile_mask_5, percentile_mask_1,datetime_embedding)
 
-def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',
-                        t_input = '2D', t_span = '0H', t_output = '1D',
-                        batch_size = 128, shuffle = True,cache_dir='./cache', 
-                        device = 'cpu',use_cache=False):
+def load_dataset_loader(dir='../dataset_download/Processed_hour', split = 'S_0',
+                        t_input = '3D', t_span = '0H', t_output = '12H',
+                        batch_size = 128, shuffle = True, cache_dir='./cache',device='cpu',
+                        use_cache = False, time_emb= False):
     """
     :param dir: Path to dataset folder
     :param spilt:  S_0-S_7
@@ -422,6 +497,7 @@ def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',
     """
     assert split in splits
     assert t_input in t_inputs
+
     cache_path = cache_dir + '/' +f'{split}_{t_input}_{t_span}_{t_output}.pt'
     if use_cache: #os.path.exists(cache_path):
         dataset_dict = torch.load(cache_path, weights_only=False)
@@ -437,14 +513,14 @@ def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',
         length_span = t_spans[t_span][index]
         length_output = t_outputs[t_output][index]
 
-        train_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['train'],device=device)
+        train_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['train'],device=device,time_emb=time_emb)
         all_timeseries_mean_std = train_dataset.calculate_normalization(train_dataset.all_timeseries)
         train_dataset.set_std_mean(all_timeseries_mean_std)
 
-        valid_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['val'],device=device)
+        valid_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['val'],device=device,time_emb=time_emb)
         valid_dataset.set_std_mean(all_timeseries_mean_std)
 
-        test_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['test'],device=device)
+        test_dataset = SFFLOODDataset(dir,split, length_input,length_span,length_output, splits_date['test'],device=device,time_emb=time_emb)
         test_dataset.set_std_mean(all_timeseries_mean_std)
 
         if use_cache:
@@ -454,26 +530,24 @@ def load_dataset_loader(dir='../dataset_download/Processed', split = 'S_0',
 
     train_loader = DataLoader(train_dataset,batch_size,shuffle)
     valid_loader = DataLoader(valid_dataset,batch_size)
-    test_loader = DataLoader(test_dataset,batch_size=1)
+    test_loader = DataLoader(test_dataset,batch_size=batch_size)
 
 
     return ({'train':train_dataset, 'val': valid_dataset, 'test':test_dataset},
             {'train':train_loader,'val':valid_loader,'test':test_loader})
 
 
-
-def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',
+def load_dataset_part_loader(dir='../dataset_download/Processed_hour', split = 'S_0',
                         t_input = '3D', t_span = '0H', t_output = '1D',
-                        batch_size = 128, shuffle = True, cache_dir='./cache',
-                        device = 'cpu',use_cache=False):
-    
+                        batch_size = 128, shuffle = True, cache_dir='./cache',device = 'cpu',
+                        use_cache = False):
 
     assert split in splits
     assert t_input in t_inputs
 
     cache_path = cache_dir + '/' +f'{split}_{t_input}_{t_span}_{t_output}_parts.pth'
-    if use_cache: #os.path.exists(cache_path):
-        dataset_dict = torch.load(cache_path,map_location='cpu',weights_only=False)
+    if use_cache: # os.path.exists(cache_path):
+        dataset_dict = torch.load(cache_path,weights_only=False)
         train_dataset = dataset_dict['train']
         test_dataset = dataset_dict['test']
         valid_dataset = dataset_dict['valid']
@@ -490,20 +564,19 @@ def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',
         test_dataset = []
         valid_dataset = []
         for i in range(3):
-            train_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['train'],device=device)
+            train_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['train'],device=device,time_emb=time_emb)
             all_timeseries_mean_std = train_dataset_tmp.calculate_normalization(train_dataset_tmp.all_timeseries)
             train_dataset_tmp.set_std_mean(all_timeseries_mean_std)
             train_dataset.append(train_dataset_tmp)
 
-            valid_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['val'],device=device)
+            valid_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['val'],device=device,time_emb=time_emb)
             valid_dataset_tmp.set_std_mean(all_timeseries_mean_std)
             valid_dataset.append(valid_dataset_tmp)
 
-            test_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['test'],device=device)
+            test_dataset_tmp = SFFLOODDatasetP(dir, split, i,length_input, length_span, length_output, splits_date['test'],device=device,time_emb=time_emb)
             test_dataset_tmp.set_std_mean(all_timeseries_mean_std)
             test_dataset.append(test_dataset_tmp)
-        
-        
+            
         if use_cache:
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir)
@@ -515,17 +588,18 @@ def load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0',
     for i in range(3):
         train_loader.append(DataLoader(train_dataset[i],batch_size,shuffle))
         valid_loader.append(DataLoader(valid_dataset[i],batch_size))
-        test_loader.append(DataLoader(test_dataset[i],batch_size=1))
+        test_loader.append(DataLoader(test_dataset[i],batch_size=batch_size))
 
     return ({'train':train_dataset, 'val': valid_dataset, 'test':test_dataset},
             {'train':train_loader,'val':valid_loader,'test':test_loader})
 
 
 if __name__=="__main__":
-    dataset_dict,dataloder_dict = load_dataset_part_loader(dir='../dataset_download/Processed', split = 'S_0')
-    dataset = dataset_dict['train'][0]
-    data = dataset[0]
-    dataset = dataset_dict['train'][2]
-    data = dataset[0]
+    dataset_dict,dataloder_dict = load_dataset_loader(dir='../dataset/Processed_hour', split = 'S_0')
+    data_valid = dataset_dict['val']
+    length = len(data_valid)
+    for idx in range(length):
+        data = data_valid[idx]
+        data_water_input = data['WATER_input'].numpy()
+        data_water_output = data['WATER_output'].numpy()
 
-    print('')

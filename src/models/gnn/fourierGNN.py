@@ -49,15 +49,15 @@ class FourierGNN(nn.Module):
 
     # FourierGNN
     def fourierGC(self, x, B, N, L):
-        o1_real = torch.zeros([B, (N*L)//2 + 1, self.frequency_size * self.hidden_size_factor],
-                              device=x.device)
-        o1_imag = torch.zeros([B, (N*L)//2 + 1, self.frequency_size * self.hidden_size_factor],
-                              device=x.device)
-        o2_real = torch.zeros(x.shape, device=x.device)
-        o2_imag = torch.zeros(x.shape, device=x.device)
-
-        o3_real = torch.zeros(x.shape, device=x.device)
-        o3_imag = torch.zeros(x.shape, device=x.device)
+        # o1_real = torch.zeros([B, (N*L)//2 + 1, self.frequency_size * self.hidden_size_factor],
+        #                       device=x.device)
+        # o1_imag = torch.zeros([B, (N*L)//2 + 1, self.frequency_size * self.hidden_size_factor],
+        #                       device=x.device)
+        # o2_real = torch.zeros(x.shape, device=x.device)
+        # o2_imag = torch.zeros(x.shape, device=x.device)
+        #
+        # o3_real = torch.zeros(x.shape, device=x.device)
+        # o3_imag = torch.zeros(x.shape, device=x.device)
 
         o1_real = F.relu(
             torch.einsum('bli,ii->bli', x.real, self.w1[0]) - \

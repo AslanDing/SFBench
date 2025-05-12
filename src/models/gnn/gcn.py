@@ -9,10 +9,10 @@ import numpy as np
 from scipy.spatial import Delaunay
 
 class BaseModel(Module, ABC):
-    def __init__(self, in_channels, hidden_channels, num_hidden, param_sharing, layerfun, edge_orientation, edge_weights):
+    def __init__(self, in_channels, hidden_channels,out_channels, num_hidden, param_sharing, layerfun, edge_orientation, edge_weights):
         super().__init__()
         self.encoder = Linear(in_channels, hidden_channels, weight_initializer="kaiming_uniform")
-        self.decoder = Linear(hidden_channels, 1, weight_initializer="kaiming_uniform")
+        self.decoder = Linear(hidden_channels, out_channels, weight_initializer="kaiming_uniform")
         if param_sharing:
             self.layers = ModuleList(num_hidden * [layerfun()])
         else:
@@ -23,9 +23,10 @@ class BaseModel(Module, ABC):
             self.loop_fill_value = 1.0 if (self.edge_weights == 0).all() else "mean"
 
     def forward(self, x, edge_index=None, evo_tracking=False):
+        B,N,T = x.shape
         if edge_index == None:
             edge_index = self.edge_index.to(x.device)
-        x = x.flatten(1)
+
         if self.edge_weights is not None:
             num_graphs = edge_index.size(1) // len(self.edge_weights)
             edge_weights = torch.cat(num_graphs * [self.edge_weights], dim=0).to(x.device)
@@ -44,6 +45,7 @@ class BaseModel(Module, ABC):
         if self.edge_weights is not None:
             edge_index, edge_weights = add_self_loops(edge_index, edge_weights, fill_value=self.loop_fill_value)
 
+        x = x
         x_0 = self.encoder(x)
         evolution = [x_0.detach()] if evo_tracking else None
 
@@ -65,22 +67,30 @@ class BaseModel(Module, ABC):
 class GCN(BaseModel):
     def __init__(self, input_length,span_length,output_length,enc_in, dec_in, c_out,
                  edge_index,
-                 hidden_channels=128, num_hidden=2, param_sharing=False, edge_orientation='bidirectional',
+                 hidden_channels=16, num_hidden=2, param_sharing=False, edge_orientation='bidirectional',
                  edge_weights=None): #
-        in_channels = enc_in
+        in_channels = input_length
         self.edge_index= edge_index
         layer_gen = lambda: GCNConv(hidden_channels, hidden_channels, add_self_loops=False)
-        super().__init__(in_channels, hidden_channels, num_hidden, param_sharing, layer_gen, edge_orientation, edge_weights)
+        super().__init__(in_channels, hidden_channels, output_length, num_hidden, param_sharing, layer_gen, edge_orientation, edge_weights)
 
     def apply_layer(self, layer, x, x_0, edge_index, edge_weights):
         return relu(layer(x, edge_index, edge_weights))
 
 
-def generate_edfe_weights(points): # [nums:2]
+def generate_edge_weights(points): # [nums:2]
 
     tri = Delaunay(points)
-    edges = tri.simplices # [2,edges] numpy
-    edge_index = torch.from_numpy(edges)
-    edge_weights = nn.Parameter(torch.nn.init.uniform_(torch.empty(edge_index.shape[1]), 0.9, 1.1))
+    # edges = tri.simplices # [2,edges] numpy
+    edges = []
+    for simplex in tri.simplices:
+        edges.append([simplex[0], simplex[1]])
+        edges.append([simplex[1], simplex[2]])
+        edges.append([simplex[2], simplex[0]])
+        edges.append([simplex[1], simplex[0]])
+        edges.append([simplex[2], simplex[1]])
+        edges.append([simplex[0], simplex[2]])
+    edge_index = torch.from_numpy(np.array(edges).T).long()
+    edge_weights = nn.Parameter(torch.nn.init.uniform_(torch.empty(edge_index.shape[1]), 1.0, 1.0))
     return edge_index, edge_weights
 

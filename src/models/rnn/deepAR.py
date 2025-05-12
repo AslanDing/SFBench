@@ -1,4 +1,5 @@
 from neuralforecast.models import DeepAR as deepar
+from neuralforecast.models.deepar import Decoder
 
 class DeepAR(deepar):
     def __init__(self,input_length,span_length,output_length,enc_in, dec_in, c_out):
@@ -9,6 +10,15 @@ class DeepAR(deepar):
         self.enc_in = enc_in
         self.dec_in = dec_in
 
+        out_feature = output_length//input_length + 1
+
+        self.decoder = Decoder(
+            in_features=self.encoder_hidden_size,
+            out_features=out_feature, #self.loss.outputsize_multiplier
+            hidden_size=0,
+            hidden_layers=0
+        )
+
 
     def forward(self, x_enc):
 
@@ -16,7 +26,7 @@ class DeepAR(deepar):
 
         x_enc = x_enc.view(B*N,T,1)
         # Parse windows_batch
-        encoder_input = x_enc #windows_batch["insample_y"]  # [B, L, 1]
+        encoder_input = x_enc
 
         # RNN forward
         if self.maintain_state:
@@ -33,7 +43,7 @@ class DeepAR(deepar):
 
         # Decoder forward
         output = self.decoder(hidden_state)  # [B, input_size-1, output_size]
-        output = output[:,:,-1].view(B,N,-1)
+        output = output[:,:,:].view(B,N,-1)
         output = output[:,-self.c_out:,-self.output_length:]
         # Return only horizon part
         return output

@@ -148,12 +148,12 @@ class LSTM(lstm):
             batch_first=True,
             proj_size=self.loss.outputsize_multiplier if self.RECURRENT else 0,
         )
-
+        multi_scale = output_length//input_length + 1
         # Decoder MLP
         if not self.RECURRENT:
             self.mlp_decoder = MLP(
                 in_features=self.encoder_hidden_size + self.futr_exog_size,
-                out_features=1, #self.loss.outputsize_multiplier,
+                out_features=multi_scale, #self.loss.outputsize_multiplier,
                 hidden_size=self.decoder_hidden_size,
                 num_layers=self.decoder_layers,
                 activation="ReLU",
@@ -194,7 +194,7 @@ class LSTM(lstm):
             output = self.mlp_decoder(
                 hidden_state
             )  # [B, h, rnn_hidden_state + F] -> [B, seq_len, n_output]
-
-        output = output[:, -self.h:,:].transpose(2,1)
-        output = output.view(B,N,-1)
+        output = output.view(output.shape[0],-1).view(B,N,-1)
+        output = output[:,:, -self.h:]
+        # output = output.view(B,N,-1)
         return output

@@ -114,16 +114,9 @@ def cal_metrics(pred, true, mean, std, percents=None):
     metric_dict['mae'] = mae
     mse = MSE(pred_np, true_np)
     metric_dict['mse'] = mse
-    rmse = RMSE(pred_np, true_np)
-    metric_dict['rmse'] = rmse
-    mape = MAPE(pred_np, true_np)
-    metric_dict['mape'] = mape
-    mspe = MSPE(pred_np, true_np)
-    metric_dict['mspe'] = mspe
 
     if not percents is None:
         sedi_list = []
-
         if isinstance(percents[0],np.ndarray):
             pass
         else:
@@ -155,26 +148,17 @@ def cal_metrics_sperate(pred, true,  mean, std, percents=None):
         mean_np = mean.cpu().detach().numpy()
         std_np = std.cpu().detach().numpy()
 
-
     mae = MAE(pred_np, true_np)
     metric_dict['mae'] = mae
     mse = MSE(pred_np, true_np)
     metric_dict['mse'] = mse
-    rmse = RMSE(pred_np, true_np)
-    metric_dict['rmse'] = rmse
-    mape = MAPE(pred_np, true_np)
-    metric_dict['mape'] = mape
-    mspe = MSPE(pred_np, true_np)
-    metric_dict['mspe'] = mspe
 
     if not percents is None:
         sedi_list = []
-
         if isinstance(percents[0], np.ndarray):
             pass
         else:
             percents = [percents[0].cpu().numpy(),percents[1].cpu().numpy(),percents[2].cpu().numpy()]
-
 
         for mask in percents:
             sedi = SEDI_sep(pred_np, true_np, mask).transpose(1,2,0)

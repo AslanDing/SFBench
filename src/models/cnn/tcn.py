@@ -210,17 +210,30 @@ class SharedParamTCN(nn.Module):
     def __init__(self, in_channels, hidden_channels, num_layers, kernel_size, dropout=0.2):
         super(SharedParamTCN, self).__init__()
         layers = []
-        for i in range(num_layers):
-            dilation = 2 ** i
-            layers.append(
-                SharedParamTCNBlock(
-                    in_channels if i == 0 else hidden_channels,
-                    hidden_channels,
-                    kernel_size,
-                    dilation
+        if isinstance(kernel_size,list):
+            for i in range(num_layers):
+                dilation = 1  # 2 ** i
+                layers.append(
+                    SharedParamTCNBlock(
+                        in_channels if i == 0 else hidden_channels,
+                        hidden_channels,
+                        kernel_size[i],
+                        dilation
+                    )
                 )
-            )
-            layers.append(nn.Dropout(dropout))
+                layers.append(nn.Dropout(dropout))
+        else:
+            for i in range(num_layers):
+                dilation = 1 #2 ** i
+                layers.append(
+                    SharedParamTCNBlock(
+                        in_channels if i == 0 else hidden_channels,
+                        hidden_channels,
+                        kernel_size,
+                        dilation
+                    )
+                )
+                layers.append(nn.Dropout(dropout))
         self.network = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -232,13 +245,14 @@ class TCN(nn.Module):
 
     def __init__(self, input_length,span_length,output_length,enc_in, dec_in, c_out,
                  # input_size, output_size, num_channels,
-                 kernel_size=2, dropout=0.3, emb_dropout=0.1, tied_weights=False):
+                 layers = 3,
+                 kernel_size=3, dropout=0.3, emb_dropout=0.1, tied_weights=False):
         super(TCN, self).__init__()
         # self.encoder = nn.Linear(span_length+output_length, input_length)
         self.encoder = nn.Linear( input_length,span_length+output_length)
         # self.tcn = TemporalConvNet(input_length, [enc_in,enc_in,enc_in], kernel_size, dropout=dropout)
         # self.tcn = ChannelWiseTCN(input_length, enc_in, 3, kernel_size, dropout=dropout)
-        self.tcn = SharedParamTCN(enc_in, enc_in, 3, kernel_size, dropout=dropout)
+        self.tcn = SharedParamTCN(enc_in, enc_in, layers, kernel_size, dropout=dropout)
 
         self.decoder = nn.Linear(input_length, output_length)
         if tied_weights:

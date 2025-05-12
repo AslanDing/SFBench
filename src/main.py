@@ -11,30 +11,15 @@ import random
 import torch.optim as optim
 from tqdm import tqdm
 from dataloader import load_dataset_loader
-from evaluation import cal_metrics
+from tools import cal_metrics, cal_metrics_sperate
 
 from models.cnn.timesnet import Timesnet
 from models.cnn.modernTCN import ModernTCN
 
-from models.mlp.nbeats import NBeats
-from models.mlp.nlinear import NLinear
-from models.mlp.tsmixer import TSMixer
 from models.mlp.mlp import MLP
-
-from models.llm.timellm import TimeLLM
-from models.llm.s2ipllm import S2IPLLM
-
-from models.rnn.deepAR import DeepAR
-from models.rnn.dilateRNN import DilatedRNN
-
-from models.gnn.stemGNN import stemGNN
-from models.gnn.fourierGNN import FourierGNN
-
-from models.transformer.autoformer import AutoFormer
-from models.transformer.informer import Informer
-from models.transformer.itransformer import iTransformer
-from models.transformer.patchTST import PatchTST
-from models.transformer.pedformer import FEDFormer
+from models.cnn.tcn import TCN
+from models.gnn.gcn import GCN, generate_edge_weights
+from models.rnn.lstm import LSTM
 
 import itertools
 import sys
@@ -44,17 +29,11 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # one batch call cal_metric one time 
-def evaluation_sep(model, dataloader,dataset,device,batch_size = 32,valid=True):
+def evaluation_sep(model, dataloader,dataset,device):
 
     model.eval()
     mean = dataset.all_timeseries_std_mean['WATER']['mean']
     std = dataset.all_timeseries_std_mean['WATER']['std']
-
-    # inputs_water = []
-    outputs_water = []
-    preds_water = []
-    # percentile_mask_lists = [[],[],[]]
-
 
     percent_10 = (dataset.percentile_mask_10['WATER'] - mean )/std
     percent_5 = (dataset.percentile_mask_5['WATER'] - mean )/std
@@ -65,9 +44,7 @@ def evaluation_sep(model, dataloader,dataset,device,batch_size = 32,valid=True):
     for batch in tqdm(dataloader):
 
         all_input = []
-        all_input_mask = []
         all_output = []
-        all_output_mask = []
         water_start = -1
         water_end = -1
         count = 0
@@ -75,7 +52,6 @@ def evaluation_sep(model, dataloader,dataset,device,batch_size = 32,valid=True):
         for key in ['WATER_input', 'RAIN_input', 'WELL_input', 'PUMP_input', 'GATE_input']:
             if key not in batch.keys():
                 continue
-
             all_input.append(batch[key])
             all_output.append(batch[key.replace('_input', '_output')])
             if 'water' in key.lower():
@@ -88,8 +64,6 @@ def evaluation_sep(model, dataloader,dataset,device,batch_size = 32,valid=True):
 
         pred = model(input.to(device)).detach()
 
-        # outputs_water.append(output.cpu()[:,water_start:water_end,:])
-        # preds_water.append(pred.cpu()[:,water_start:water_end,:].view(input.shape[0],-1,output.shape[-1]))
         if pred.shape[1] == input.shape[1]:
             metrics = cal_metrics_sperate(output.cpu()[:, water_start:water_end, :],
                                   pred.cpu()[:, water_start:water_end, :].view(input.shape[0], -1, output.shape[-1]),
@@ -122,31 +96,24 @@ def evaluation_sep(model, dataloader,dataset,device,batch_size = 32,valid=True):
     return all_metric
 
 # all data call cal_metric one time 
-def evaluation(model, dataloader,dataset,device,batch_size = 32,valid=True):
+def evaluation(model, dataloader,dataset,device):
 
     model.eval()
     mean = dataset.all_timeseries_std_mean['WATER']['mean']
     std = dataset.all_timeseries_std_mean['WATER']['std']
 
-    # inputs_water = []
     outputs_water = []
     preds_water = []
-    # percentile_mask_lists = [[],[],[]]
-
 
     percent_10 = (dataset.percentile_mask_10['WATER'] - mean )/std
     percent_5 = (dataset.percentile_mask_5['WATER'] - mean )/std
     percent_1 = (dataset.percentile_mask_1['WATER'] - mean )/std
 
     all_metric = {}
-    all_count = 0
-
     for batch in tqdm(dataloader):
 
         all_input = []
-        all_input_mask = []
         all_output = []
-        all_output_mask = []
         water_start = -1
         water_end = -1
         count = 0
@@ -179,21 +146,9 @@ def evaluation(model, dataloader,dataset,device,batch_size = 32,valid=True):
     return all_metric
 
 # only cacluate mse once 
-def eval(model, dataloader,dataset,device,batch_size = 32,valid=True):
+def eval(model, dataloader,dataset,device):
 
     model.eval()
-    mean = dataset.all_timeseries_std_mean['WATER']['mean']
-    std = dataset.all_timeseries_std_mean['WATER']['std']
-
-    # inputs_water = []
-    outputs_water = []
-    preds_water = []
-    # percentile_mask_lists = [[],[],[]]
-
-
-    percent_10 = (dataset.percentile_mask_10['WATER'] - mean )/std
-    percent_5 = (dataset.percentile_mask_5['WATER'] - mean )/std
-    percent_1 = (dataset.percentile_mask_1['WATER'] - mean )/std
 
     all_metric = 0
     all_count = 0
@@ -202,9 +157,7 @@ def eval(model, dataloader,dataset,device,batch_size = 32,valid=True):
     for batch in tqdm(dataloader):
 
         all_input = []
-        all_input_mask = []
         all_output = []
-        all_output_mask = []
         water_start = -1
         water_end = -1
         count = 0
@@ -225,8 +178,6 @@ def eval(model, dataloader,dataset,device,batch_size = 32,valid=True):
 
         pred = model(input.to(device)).detach()
 
-        # outputs_water.append(output.cpu()[:,water_start:water_end,:])
-        # preds_water.append(pred.cpu()[:,water_start:water_end,:].view(input.shape[0],-1,output.shape[-1]))
         if pred.shape[1] == input.shape[1]:
             metrics = mse(output.cpu()[:, water_start:water_end, :],
                                   pred.cpu()[:, water_start:water_end, :].view(input.shape[0], -1, output.shape[-1]))
@@ -237,12 +188,11 @@ def eval(model, dataloader,dataset,device,batch_size = 32,valid=True):
         all_metric += metrics
         all_count += 1
 
-    # pprint(f"valid mse: {float(all_metric/all_count)}")
     return all_metric/all_count
 
 
 def main(args):
-    # data_dir, dataset, method, device, SEED
+    
     SEED = args.seed
     random.seed(SEED)
     torch.manual_seed(SEED)
@@ -277,71 +227,32 @@ def main(args):
     output_dim = dataset_dict['train'].all_timeseries['WATER'].shape[0]
 
     # MLP
-    if method_name.lower() == 'nbeats'.lower():
-        model = NBeats(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-    elif method_name.lower() == 'NLinear'.lower():
-        model = NLinear(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-    elif method_name.lower() == 'TSMixer'.lower():
-        model = TSMixer(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-    elif method_name.lower() == 'mlp'.lower():
+    if method_name.lower() == 'mlp'.lower():
         model = MLP(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
         optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                 weight_decay=weight_decay)
-    # LLM
-    elif method_name.lower() == 'timellm'.lower():
-        model = TimeLLM(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-
-        # parameters = [model.patch_embedding,model.output_projection]
-        params = itertools.chain(model.patch_embedding.parameters(), model.output_projection.parameters())
-        optimizer = optim.AdamW(params, lr=learning_rate,
-                               weight_decay=weight_decay)
-
-    elif method_name.lower() == 'S2IPLLM'.lower():
-        model = S2IPLLM(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-
-        optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
-                               weight_decay=weight_decay)
-    # RNN
-    elif method_name.lower() == 'DeepAR'.lower():
-        model = DeepAR(input_t_length, span_t_length, output_t_length, output_dim, output_dim, output_dim)
-    elif method_name.lower() == 'DilatedRNN'.lower():
-        model = DilatedRNN(input_t_length, span_t_length, output_t_length, output_dim, output_dim, output_dim)
-
-    # GNN
-    elif method_name.lower() == 'stemGNN'.lower():
-        model = stemGNN(input_t_length,span_t_length,output_t_length,input_dim,input_dim,input_dim)
-        optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
-                               weight_decay=weight_decay)
-    elif method_name.lower() == 'FourierGNN'.lower():
-        model = FourierGNN(input_t_length,span_t_length,output_t_length,input_dim,input_dim,input_dim)
-        optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
-                               weight_decay=weight_decay)
-
     # CNN
-    elif method_name.lower() == 'ModernTCN'.lower():
-        model = ModernTCN(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-    elif method_name.lower() == 'Timesnet'.lower():
-        model = Timesnet(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-
-    # Transformer
-    elif method_name.lower() == 'FEDFormer'.lower():
-        model = FEDFormer(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-    elif method_name.lower() == 'PatchTST'.lower():
-        model = PatchTST(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-    elif method_name.lower() == 'iTransformer'.lower():
-        model = iTransformer(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-    elif method_name.lower() == 'Informer'.lower():
-        model = Informer(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-    elif method_name.lower() == 'AutoFormer'.lower():
-        model = AutoFormer(input_t_length,span_t_length,output_t_length,output_dim,output_dim,output_dim)
-
+    elif method_name.lower() == 'TCN'.lower():
+        model = TCN(input_t_length,span_t_length,output_t_length,input_dim,output_dim,output_dim)
+        optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
+                                   weight_decay=weight_decay)
+    elif method_name.lower() == 'GCN'.lower():
+        all_locations = dataset_dict['train'].all_locations
+        locations = [all_locations['WATER'],all_locations['RAIN'],all_locations['WELL'],all_locations['PUMP'],all_locations['GATE']]
+        locations = np.concatenate(locations,axis=1)
+        edge_index, edge_weight = generate_edge_weights(locations.T)
+        model = GCN(input_t_length,span_t_length,output_t_length,input_dim,input_dim,input_dim,edge_index,edge_weights=edge_weight)
+        optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
+                               weight_decay=weight_decay)
+    elif method_name.lower() == 'LSTM'.lower():
+        model = LSTM(input_t_length, span_t_length, output_t_length, input_dim, output_dim, output_dim)
+        optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
+                                weight_decay=weight_decay)
     else:
         raise ValueError("method error")
 
     model.to(device)
 
-    # train
-    # epoches =  1
     train_dataloder = dataloader_dict['train']
     val_dataloder = dataloader_dict['val']
     test_dataloder = dataloader_dict['test']
@@ -382,15 +293,15 @@ def main(args):
             output = torch.concat(all_output,dim=1)
             output_mask = torch.concat(all_output_mask,dim=1)
 
-            pred = model(input[:,water_start:water_end,:].to(device))
-            loss = criterion(pred, output[:,water_start:water_end,:].to(device))
+            pred = model(input.to(device))
+            loss = criterion(pred[:,water_start:water_end,:], output[:,water_start:water_end,:].to(device))
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             sum_loss += loss.item()
             count_loss += 1
-            # break
+            
         print(f'{epoch} loss:{sum_loss/count_loss}')
         metric_dict = eval(model,val_dataloder,dataset_dict['val'],device,batch_size)
         if metric_dict['mse']<best_eval:
@@ -405,15 +316,7 @@ def main(args):
 
 
 if __name__=="__main__":
-    print("Number of arguments:", len(sys.argv))
-    print("Arguments are:", str(sys.argv))
-    for i, arg in enumerate(sys.argv):
-        print(f" {arg} ")
-
-    parser = argparse.ArgumentParser(
-        prog='Dataset Benchmark',
-        description='What the program does',
-        epilog='Text at the bottom of help')
+    parser = argparse.ArgumentParser(prog='Dataset Benchmark')
 
     parser.add_argument('--dataset_path', default='../dataset_download/Processed')
     parser.add_argument('--cache_dir', default='./cache')
@@ -422,18 +325,21 @@ if __name__=="__main__":
     parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'])
     parser.add_argument('--length_output', default='12H', choices=['1H', '6H', '12H', '1D', '2D'])
 
-    parser.add_argument('--method', default='mlp') # S2IPLLM
+    parser.add_argument('--method', default='mlp')
 
     parser.add_argument('--lr', default=1E-3)
     parser.add_argument('--weight_decay', default=0E-5)
     parser.add_argument('--epoches', default=50)
     parser.add_argument('--batchsize', default=8)
 
-
-    parser.add_argument('--device', default='cuda:3')
+    parser.add_argument('--device', default='cpu')
     parser.add_argument('--seed', default=2025, type=int)
 
     args = parser.parse_args()
 
     print(args)
     main(args)
+
+
+# add train and test part 
+

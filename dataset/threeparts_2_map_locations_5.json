@@ -1,49 +1,49 @@
 {
     "WATER": [
+        "FU5_H",
+        "FU4S_T",
+        "CR951S_H",
         "951EXT",
+        "CORK3",
         "FAKI75",
         "CR951S_T",
         "CORK2",
         "FU4S_H",
-        "CORK3",
-        "FU4S_T",
-        "CR951S_H",
-        "FU5_T",
-        "FU5_H"
+        "FU5_T"
     ],
     "WELL": [
-        "WF2",
-        "ST1",
-        "FT.DENAUDE",
-        "ST2",
-        "SGT2W4",
-        "SGT1W4",
-        "SGT2W2",
-        "SGT1W1",
-        "HF1",
-        "HF6",
-        "SGT2W3",
-        "FTDN-S",
-        "SGT1W5",
-        "SGT1W2",
-        "SGT2W6",
-        "SGT2W1",
-        "LAB-SU1",
         "WF3",
-        "SGT2W5"
+        "SGT1W1",
+        "SGT2W2",
+        "SGT2W5",
+        "LAB-SU1",
+        "FTDN-S",
+        "SGT2W1",
+        "SGT1W2",
+        "SGT1W5",
+        "SGT2W6",
+        "ST1",
+        "SGT2W4",
+        "SGT2W3",
+        "WF2",
+        "HF6",
+        "ST2",
+        "SGT1W4",
+        "FT.DENAUDE",
+        "HF1"
     ],
     "RAIN": [
+        "GOLDFS2",
         "LEHIGH W_R",
-        "BRYGR",
+        "SGGEWX",
         "951EXT_R",
         "COLLIER_R",
-        "SGGEWX",
-        "GOLDFS2"
+        "BRYGR"
     ],
     "PUMP": [],
     "GATE": [
-        "FU4S_S",
         "FU5_S",
+        "FU4S_S",
         "HC1_C"
     ]
 }
