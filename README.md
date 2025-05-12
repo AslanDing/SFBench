@@ -86,7 +86,6 @@ Thanks for the help of the South Florida Water Management District(SFWMD) in col
 - One Fits All: [https://github.com/DAMO-DI-ML/NeurIPS2023-One-Fits-All](https://github.com/DAMO-DI-ML/NeurIPS2023-One-Fits-All)
 - AutoTimes: [https://github.com/thuml/AutoTimes/tree/main](https://github.com/thuml/AutoTimes/tree/main)
 - Neural-Flood-Forecasting: [https://github.com/nkirschi/neural-flood-forecasting](https://github.com/nkirschi/neural-flood-forecasting)
-- TS2Vec: 
 
 
 ## Citation
