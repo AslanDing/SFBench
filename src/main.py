@@ -23,7 +23,7 @@ from models.rnn.lstm import LSTM
 
 import itertools
 import sys
-import pprint
+from pprint import pprint
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -309,14 +309,14 @@ def main(args):
             count_loss += 1
             
         print(f'{epoch} loss:{sum_loss/count_loss}')
-        metric_dict = eval(model,val_dataloder,dataset_dict['val'],device,batch_size)
-        if metric_dict['mse']<best_eval:
-            best_eval = metric_dict['mse']
+        metric_dict = eval(model,val_dataloder,dataset_dict['val'],device)
+        if metric_dict<best_eval:
+            best_eval = metric_dict
             best_model_dict = model.state_dict()
 
     model.load_state_dict(best_model_dict)
     # test_metric_dict = evaluation(model,test_dataloder,dataset_dict['test'],device,batch_size,valid=False)
-    test_metric_dict = evaluation_sep(model,test_dataloder,dataset_dict['test'],device,batch_size,valid=False)
+    test_metric_dict = evaluation_sep(model,test_dataloder,dataset_dict['test'],device)
     for key in test_metric_dict.keys():
         print(f'{key}: {test_metric_dict[key]}')
     if store:
@@ -325,23 +325,23 @@ def main(args):
 if __name__=="__main__":
     parser = argparse.ArgumentParser(prog='Dataset Benchmark')
 
-    parser.add_argument('--dataset_path', default='../dataset_download/Processed')
+    parser.add_argument('--dataset_path', default='../../WaterBenchmark_run/dataset/Processed_hour/')
     parser.add_argument('--cache_dir', default='./cache')
-    parser.add_argument('--dataset', default='S_2', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'])
-    parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'])
-    parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'])
-    parser.add_argument('--length_output', default='12H', choices=['1H', '6H', '12H', '1D', '2D'])
+    parser.add_argument('--dataset', default='S_0', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'], type=str)
+    parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'], type=str)
+    parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'], type=str)
+    parser.add_argument('--length_output', default='1D', choices=['1H', '6H', '12H', '1D', '2D','3D','5D','1W'], type=str)
 
-    parser.add_argument('--method', default='mlp')
+    parser.add_argument('--method', default='gcn', type=str)
 
-    parser.add_argument('--lr', default=1E-3)
-    parser.add_argument('--weight_decay', default=0E-5)
-    parser.add_argument('--epoches', default=50)
-    parser.add_argument('--batchsize', default=8)
+    parser.add_argument('--lr', default=1E-3, type=float)
+    parser.add_argument('--weight_decay', default=0E-5, type=float)
+    parser.add_argument('--epoches', default=1, type=int)
+    parser.add_argument('--batchsize', default=8, type=int)
 
-    parser.add_argument('--store', default=False)
+    parser.add_argument('--store', default=True, type=bool)
 
-    parser.add_argument('--device', default='cpu')
+    parser.add_argument('--device', default='cuda:7', type=str)
     parser.add_argument('--seed', default=2025, type=int)
 
     args = parser.parse_args()

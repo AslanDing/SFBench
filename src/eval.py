@@ -394,7 +394,7 @@ def main_parts(args):
         val_dataloder = dataloader_dict['val'][part_i]
         test_dataloder = dataloader_dict['test'][part_i]
 
-        test_metric_dict = evaluation_sep(model,test_dataloder,dataset_dict['test'][part_i],device,batch_size)
+        test_metric_dict = evaluation_sep(model,test_dataloder,dataset_dict['test'][part_i],device)
         metrics_list.append(test_metric_dict)
         for idx,metric_d in enumerate(metrics_list):
             print("part i : ", idx)
@@ -409,18 +409,18 @@ if __name__=="__main__":
 
     parser.add_argument('--dataset_path', default='../dataset/Processed')
     parser.add_argument('--cache_dir', default='./cache')
-    parser.add_argument('--dataset', default='S_2', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'])
-    parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'])
-    parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'])
-    parser.add_argument('--length_output', default='2D', choices=['1H', '6H', '12H', '1D', '2D'])
+    parser.add_argument('--dataset', default='S_2', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'], type=str)
+    parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'], type=str)
+    parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'], type=str)
+    parser.add_argument('--length_output', default='2D', choices=['1H', '6H', '12H', '1D', '2D'], type=str)
 
-    parser.add_argument('--method', default='gcn')
-    parser.add_argument('--batchsize', default=64)
+    parser.add_argument('--method', default='gcn', type=str)
+    parser.add_argument('--batchsize', default=64, type=int)
 
-    parser.add_argument('--store', default=False)
-    parser.add_argument('--part', default=False)  # whole dataset or part
+    parser.add_argument('--store', default=False, type=bool)
+    parser.add_argument('--part', default=False, type=bool)  # whole dataset or part
 
-    parser.add_argument('--device', default='cpu')
+    parser.add_argument('--device', default='cpu', type=str)
     parser.add_argument('--seed', default=2025, type=int)
 
     args = parser.parse_args()

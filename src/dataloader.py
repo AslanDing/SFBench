@@ -155,15 +155,16 @@ class SFFLOODDataset(Dataset):
         return all_timeseries_std_mean
 
     def time_encoding(self,datetime):
-
         df_stamp = pd.to_datetime(datetime)
-        df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
-        df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
-        df_stamp['weekday'] = df_stamp.date.apply(lambda row: row.weekday(), 1)
-        df_stamp['hour'] = df_stamp.date.apply(lambda row: row.hour, 1)
-        df_stamp['minute'] = df_stamp.date.apply(lambda row: row.minute, 1)
-        df_stamp['minute'] = df_stamp.minute.map(lambda x: x // 10)
-        data_stamp = df_stamp.drop(['TIMESTAMP'], 1).values
+        df_stamp = pd.DataFrame({
+            'month': df_stamp.dt.month,
+            'day': df_stamp.dt.day,
+            'weekday': df_stamp.dt.weekday,
+            'hour': df_stamp.dt.hour #,
+            # 'minute': df_stamp.dt.minute
+        })
+        data_stamp = df_stamp.values
+
         return data_stamp
 
     def load_csv_files(self,dir,split,training_datetime):
@@ -254,6 +255,8 @@ class SFFLOODDataset(Dataset):
                 mask = (data_frame['TIMESTAMP_'] >= pd.to_datetime(training_datetime[0])) & (
                         data_frame['TIMESTAMP_'] <= pd.to_datetime(training_datetime[1]))
                 new_df = data_frame[mask]
+                if datetime is None:
+                    datetime = new_df['TIMESTAMP']
 
                 timeseries_data = new_df['INTERPOLATED_VALUE'].values
                 timeseries_mask = new_df['CONFIDENCE'].values
@@ -328,13 +331,15 @@ class SFFLOODDatasetP(Dataset):
     def time_encoding(self,datetime):
 
         df_stamp = pd.to_datetime(datetime)
-        df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
-        df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
-        df_stamp['weekday'] = df_stamp.date.apply(lambda row: row.weekday(), 1)
-        df_stamp['hour'] = df_stamp.date.apply(lambda row: row.hour, 1)
-        df_stamp['minute'] = df_stamp.date.apply(lambda row: row.minute, 1)
-        df_stamp['minute'] = df_stamp.minute.map(lambda x: x // 10)
-        data_stamp = df_stamp.drop(['TIMESTAMP'], 1).values
+
+        df_stamp = pd.DataFrame({
+            'month': df_stamp.dt.month,
+            'day': df_stamp.dt.day,
+            'weekday': df_stamp.dt.weekday,
+            'hour': df_stamp.dt.hour #,
+            # 'minute': df_stamp.dt.minute
+        })
+        data_stamp = df_stamp.values
         return data_stamp
 
 
@@ -430,9 +435,6 @@ class SFFLOODDatasetP(Dataset):
                     print('station_name:',station_name)
                     continue
 
-                if datetime is None:
-                    data_frame = data_frame['TIMESTAMP']
-
                 json_file = files_dict[station_name]['json']
                 with open(json_file) as fp:
                     dd = json.load(fp)
@@ -457,6 +459,9 @@ class SFFLOODDatasetP(Dataset):
                 mask = (data_frame['TIMESTAMP_'] >= pd.to_datetime(training_datetime[0])) & (
                         data_frame['TIMESTAMP_'] <= pd.to_datetime(training_datetime[1]))
                 new_df = data_frame[mask]
+
+                if datetime is None:
+                    datetime = new_df['TIMESTAMP']
 
                 timeseries_data = new_df['INTERPOLATED_VALUE'].values
                 timeseries_mask = new_df['CONFIDENCE'].values
@@ -540,7 +545,7 @@ def load_dataset_loader(dir='../dataset_download/Processed_hour', split = 'S_0',
 def load_dataset_part_loader(dir='../dataset_download/Processed_hour', split = 'S_0',
                         t_input = '3D', t_span = '0H', t_output = '1D',
                         batch_size = 128, shuffle = True, cache_dir='./cache',device = 'cpu',
-                        use_cache = False):
+                        use_cache = False, time_emb=False):
 
     assert split in splits
     assert t_input in t_inputs

@@ -90,7 +90,7 @@ def NSE(pred,true,mean,std):
 
     weighted_nse = 1 - model_mse.sum(axis=-1) / (mean_mse+1E-8).sum(axis=-1)
     weighted_nse = weighted_nse.mean()
-    return weighted_nse.cpu()
+    return weighted_nse
 
 def cal_metrics(pred, true, mean, std, percents=None):
     metric_dict = {}

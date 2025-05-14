@@ -339,8 +339,6 @@ def main(args):
             optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
                                    weight_decay=weight_decay)
 
-
-
         # Transformer
         elif method_name.lower() == 'PatchTST'.lower():
             model = PatchTST(input_t_length,span_t_length,output_t_length,input_dim,input_dim,input_dim)
@@ -402,15 +400,15 @@ def main(args):
                 # break
             print(f'{epoch} loss:{sum_loss/count_loss}')
 
-            metric_dict = eval(model,val_dataloder,dataset_dict['val'][part_i])
-            test_metric_dict = eval(model, test_dataloder, dataset_dict['test'][part_i])
-            print("valid test :",metric_dict,test_metric_dict)
+            metric_dict = eval(model,val_dataloder,dataset_dict['val'][part_i],device)
+            # test_metric_dict = eval(model, test_dataloder, dataset_dict['test'][part_i],device)
+            print("valid test :",metric_dict)
             if metric_dict<best_eval:
                 best_eval = metric_dict
                 best_model_dict = model.state_dict()
 
         model.load_state_dict(best_model_dict)
-        test_metric_dict = evaluation_sep(model,test_dataloder,dataset_dict['test'][part_i])
+        test_metric_dict = evaluation_sep(model,test_dataloder,dataset_dict['test'][part_i],device)
         metrics_list.append(test_metric_dict)
         for idx,metric_d in enumerate(metrics_list):
             print("part i : ", idx)
@@ -423,23 +421,23 @@ def main(args):
 if __name__=="__main__":
     parser = argparse.ArgumentParser(prog='Dataset Benchmark')
 
-    parser.add_argument('--dataset_path', default='../dataset/Processed')
+    parser.add_argument('--dataset_path', default='../../WaterBenchmark_run/dataset/Processed_hour/')
     parser.add_argument('--cache_dir', default='./cache')
-    parser.add_argument('--dataset', default='S_2', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'])
-    parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'])
-    parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'])
-    parser.add_argument('--length_output', default='2D', choices=['1H', '6H', '12H', '1D', '2D'])
+    parser.add_argument('--dataset', default='S_0', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'], type=str)
+    parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'], type=str)
+    parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'], type=str)
+    parser.add_argument('--length_output', default='2D', choices=['1H', '6H', '12H', '1D', '2D'], type=str)
 
-    parser.add_argument('--method', default='gcn')
+    parser.add_argument('--method', default='gcn', type=str)
 
-    parser.add_argument('--lr', default=5E-4)
-    parser.add_argument('--weight_decay', default=1E-6)
-    parser.add_argument('--epoches', default=300)
-    parser.add_argument('--batchsize', default=64)
+    parser.add_argument('--lr', default=5E-4, type=float)
+    parser.add_argument('--weight_decay', default=1E-6, type=float)
+    parser.add_argument('--epoches', default=1, type=int)
+    parser.add_argument('--batchsize', default=64, type=int)
 
-    parser.add_argument('--store', default=False)
+    parser.add_argument('--store', default=True, type=bool)
 
-    parser.add_argument('--device', default='cpu')
+    parser.add_argument('--device', default='cuda:7', type=str)
     parser.add_argument('--seed', default=2025, type=int)
 
     args = parser.parse_args()
