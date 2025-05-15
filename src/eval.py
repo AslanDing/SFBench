@@ -385,7 +385,8 @@ def main_parts(args):
             raise ValueError("method error")
 
         best_model_dict = torch.load(store_path%part_i, map_location = 'cpu')
-        model.load(best_model_dict)
+        # print(best_model_dict)
+        model.load_state_dict(best_model_dict)
         model.to(device)
         model.eval()
 
@@ -412,7 +413,7 @@ if __name__=="__main__":
     parser.add_argument('--dataset', default='S_2', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'], type=str)
     parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'], type=str)
     parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'], type=str)
-    parser.add_argument('--length_output', default='2D', choices=['1H', '6H', '12H', '1D', '2D'], type=str)
+    parser.add_argument('--length_output', default='2D', choices=['1H', '6H', '12H', '1D', '2D','3D','5D','1W'], type=str)
 
     parser.add_argument('--method', default='gcn', type=str)
     parser.add_argument('--batchsize', default=64, type=int)

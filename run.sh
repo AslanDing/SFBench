@@ -33,10 +33,10 @@ do
   python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 5D  --method mlp --lr 0.0001 --weight_decay 0.000001 --epoches 15 --batchsize 64 --seed 2025
   python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 1W  --method mlp --lr 0.0001 --weight_decay 0.000001 --epoches 15 --batchsize 64 --seed 2025
 
-  python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 1D  --method lstm --lr 0.0001 --weight_decay 0.00005 --epoches 50 --batchsize 64 --seed 2025
-  python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 3D  --method lstm --lr 0.0001 --weight_decay 0.00005 --epoches 50 --batchsize 64 --seed 2025
-  python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 5D  --method lstm --lr 0.0001 --weight_decay 0.00005 --epoches 50 --batchsize 64 --seed 2025
-  python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 1W  --method lstm --lr 0.0001 --weight_decay 0.00005 --epoches 50 --batchsize 64 --seed 2025
+  python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 1D  --method lstm --lr 0.001 --weight_decay 0.000001 --epoches 50 --batchsize 64 --seed 2025
+  python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 3D  --method lstm --lr 0.001 --weight_decay 0.000001 --epoches 50 --batchsize 64 --seed 2025
+  python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 5D  --method lstm --lr 0.001 --weight_decay 0.000001 --epoches 50 --batchsize 64 --seed 2025
+  python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 1W  --method lstm --lr 0.001 --weight_decay 0.000001 --epoches 50 --batchsize 64 --seed 2025
 
   python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 1D  --method tcn --lr 0.001 --weight_decay 0.0000001 --epoches 50 --batchsize 256 --seed 2025
   python ./src/main_three_parts.py --dataset_path=./dataset/Processed_hour --dataset $name --length_input 2D --length_output 3D  --method tcn --lr 0.001 --weight_decay 0.0000001 --epoches 50 --batchsize 256 --seed 2025

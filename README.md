@@ -44,7 +44,7 @@ python main.py --dataset_path [PATH] --cache_dir [cache_PATH] --dataset [split] 
 
 ## Evaluation
 
-To evaluate the model, the eval.py can be used. Notably, in training main.py/main_three_parts.py, the evaluation results are also available. We provide some pretrain state dict for reproduce our results. The pretrain model state dicts are available on [PlaceHolder](https://)
+To evaluate the model, the eval.py can be used. Notably, in training main.py/main_three_parts.py, the evaluation results are also available. We provide some pretrain state dict for reproduce our results. 
 ```eval
 python eval.py --dataset_path [PATH] --cache_dir [cache_PATH] --dataset [split]  --length_input [Lookback]  --length_output [Prediction] \
  --bachsize [B] --method [model-name] --device [device] --seed [seed]
@@ -53,7 +53,7 @@ python eval.py --dataset_path [PATH] --cache_dir [cache_PATH] --dataset [split] 
 <!-- >📋  Describe how to evaluate the trained models on benchmarks reported in the paper, give commands that produce the results (section below). -->
 
 ## Pre-trained Models
-We provide the pretrain model to reporduce the results reported in our paper. Please refer to [google drive](http://placeholder).
+We use this repo to reporduce the results, the model state dicts are provided in [google drive](https://drive.google.com/file/d/16Yh0WR-UDUcx8i3DiLU0NCKiNPMnvZpH/view?usp=sharing).
 
 <!-- >📋  Give a link to where/how the pretrained models can be downloaded and how they were trained (if applicable).  Alternatively you can have an additional column in your results table with a link to the models. -->
 

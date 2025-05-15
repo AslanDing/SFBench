@@ -10,11 +10,11 @@ class LSTM(lstm):
     def __init__(self,input_length,span_length,output_length,enc_in, dec_in, c_out,
                  inference_input_size: Optional[int] = None,
                  encoder_n_layers: int = 2,
-                 encoder_hidden_size: int = 4,
+                 encoder_hidden_size: int = 32,
                  encoder_bias: bool = True,
                  encoder_dropout: float = 0.0,
                  context_size: Optional[int] = None,
-                 decoder_hidden_size: int = 4,
+                 decoder_hidden_size: int = 32,
                  decoder_layers: int = 2):
         super(LSTM, self).__init__(h=output_length+span_length,input_size=input_length)
 

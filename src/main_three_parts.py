@@ -241,7 +241,7 @@ def main(args):
     store_dir = os.path.join(cache_dir,f'{method_name}_{dataset}_{length_input}_{length_output}')
     if store and not os.path.exists(store_dir):
         os.makedirs(store_dir)
-        store_path = os.path.join(store_dir,"model_state_%d.pth")
+    store_path = os.path.join(store_dir,"model_state_%d.pth")
 
     dataset_dict, dataloader_dict = load_dataset_part_loader(data_dir,dataset,
                                 length_input,length_span,length_output,batch_size,cache_dir=cache_dir,device=device)
@@ -364,6 +364,7 @@ def main(args):
         for epoch in range(epoches):
             sum_loss = 0
             count_loss = 0
+            model.train()
             for batch in tqdm(train_dataloder):
 
                 all_input = []
@@ -421,12 +422,12 @@ def main(args):
 if __name__=="__main__":
     parser = argparse.ArgumentParser(prog='Dataset Benchmark')
 
-    parser.add_argument('--dataset_path', default='../../WaterBenchmark_run/dataset/Processed_hour/')
+    parser.add_argument('--dataset_path', default='../dataset/Processed_hour/')
     parser.add_argument('--cache_dir', default='./cache')
     parser.add_argument('--dataset', default='S_0', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'], type=str)
     parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'], type=str)
     parser.add_argument('--length_span', default='0H', choices=['0H', '1H', '1D', '1W'], type=str)
-    parser.add_argument('--length_output', default='2D', choices=['1H', '6H', '12H', '1D', '2D'], type=str)
+    parser.add_argument('--length_output', default='2D', choices=['1H', '6H', '12H', '1D', '2D','3D','5D','1W'], type=str)
 
     parser.add_argument('--method', default='gcn', type=str)
 
@@ -437,7 +438,7 @@ if __name__=="__main__":
 
     parser.add_argument('--store', default=True, type=bool)
 
-    parser.add_argument('--device', default='cuda:7', type=str)
+    parser.add_argument('--device', default='cpu', type=str)
     parser.add_argument('--seed', default=2025, type=int)
 
     args = parser.parse_args()

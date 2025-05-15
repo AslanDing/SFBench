@@ -217,7 +217,7 @@ def main(args):
     store_dir = os.path.join(cache_dir,f'{method_name}_{dataset}_{length_input}_{length_output}')
     if store and not os.path.exists(store_dir):
         os.makedirs(store_dir)
-        store_path = os.path.join(store_dir,"model_state.pth")
+    store_path = os.path.join(store_dir,"model_state.pth")
     # load dataset
     dataset_dict, dataloader_dict = load_dataset_loader(data_dir,dataset,
                                 length_input,length_span,length_output,batch_size,cache_dir=cache_dir,device=device)
@@ -325,7 +325,7 @@ def main(args):
 if __name__=="__main__":
     parser = argparse.ArgumentParser(prog='Dataset Benchmark')
 
-    parser.add_argument('--dataset_path', default='../../WaterBenchmark_run/dataset/Processed_hour/')
+    parser.add_argument('--dataset_path', default='../dataset/Processed_hour/')
     parser.add_argument('--cache_dir', default='./cache')
     parser.add_argument('--dataset', default='S_0', choices=['S_0', 'S_1', 'S_2', 'S_3', 'S_4', 'S_5', 'S_6', 'S_7'], type=str)
     parser.add_argument('--length_input', default='3D', choices=['1D', '2D', '3D', '1W', '2W', '3W'], type=str)
@@ -341,7 +341,7 @@ if __name__=="__main__":
 
     parser.add_argument('--store', default=True, type=bool)
 
-    parser.add_argument('--device', default='cuda:7', type=str)
+    parser.add_argument('--device', default='cpu', type=str)
     parser.add_argument('--seed', default=2025, type=int)
 
     args = parser.parse_args()
@@ -349,6 +349,4 @@ if __name__=="__main__":
     print(args)
     main(args)
 
-
-# add train and test part 
 
