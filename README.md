@@ -2,7 +2,7 @@
 
 # SF$^2$Bench: Evaluating Data-Driven Models for Compound Flood Forecasting in South Florida
 
-This repository is the official implementation of [SF$^2$Bench](https://arxiv.org/abs/Placeholder). A benchmark paper of compound flood in the South Florida area. In this paper, we consider seveal key factors for compound flood forecasting, including sea level, rainfall, groundwater and human control/management activities.
+This repository is the official implementation of [SF$^2$Bench](https://arxiv.org/abs/2506.04281). A benchmark paper of compound flood in the South Florida area. In this paper, we consider seveal key factors for compound flood forecasting, including sea level, rainfall, groundwater and human control/management activities.
 
 <!-- >📋  Optional: include a graphic explaining your approach/main result, bibtex entry, link to demos, blog posts and tutorials -->
 
