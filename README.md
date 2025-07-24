@@ -91,5 +91,13 @@ Thanks for the help of the South Florida Water Management District(SFWMD) in col
 ## Citation
 If this repo is useful for you, please consider citing our paper:
 ```
-PlaceHolder
+@misc{zheng2025sf2benchevaluatingdatadrivenmodels,
+      title={SF$^2$Bench: Evaluating Data-Driven Models for Compound Flood Forecasting in South Florida}, 
+      author={Xu Zheng and Chaohao Lin and Sipeng Chen and Zhuomin Chen and Jimeng Shi and Wei Cheng and Jayantha Obeysekera and Jason Liu and Dongsheng Luo},
+      year={2025},
+      eprint={2506.04281},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2506.04281}, 
+}
 ```
