@@ -7,7 +7,7 @@ This repository is the official implementation of [SF$^2$Bench](https://arxiv.or
 <!-- >📋  Optional: include a graphic explaining your approach/main result, bibtex entry, link to demos, blog posts and tutorials -->
 
 ## Dataset
-Please download the ESD dataset from [ [https://doi.org/10.7910/DVN/TU5UXE](https://github.com/HLTSingapore/Emotional-Speech-Data)] and Unzip to dataset folder. The detail information of each file is provided in [Dataset.md](./dataset/Dataset.md)
+Please download the dataset from [ https://doi.org/10.7910/DVN/TU5UXE]( https://doi.org/10.7910/DVN/TU5UXE) and Unzip to dataset folder. The detail information of each file is provided in [Dataset.md](./dataset/Dataset.md)
 
 
 ## Requirements
