@@ -4,11 +4,16 @@
 
 This repository is the official implementation of [SF$^2$Bench](https://arxiv.org/abs/2506.04281). A benchmark paper of compound flood in the South Florida area. In this paper, we consider seveal key factors for compound flood forecasting, including sea level, rainfall, groundwater and human control/management activities.
 
+![image](pics/compound_flood_sketch.jpg)
+
 <!-- >📋  Optional: include a graphic explaining your approach/main result, bibtex entry, link to demos, blog posts and tutorials -->
 
 ## Dataset
 Please download the dataset from [ https://doi.org/10.7910/DVN/TU5UXE]( https://doi.org/10.7910/DVN/TU5UXE) and Unzip to dataset folder. The detail information of each file is provided in [Dataset.md](./dataset/Dataset.md)
 
+
+![image](pics/water_flood.jpg)
+![image](pics/observation_flood.jpg)
 
 ## Requirements
 
