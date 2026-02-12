@@ -66,9 +66,9 @@ We use this repo to reporduce the results, the model state dicts are provided in
 
 The detailed results are provided in our paper. The part benchmark results on three interest parts:
 
-![image](pics/mae_mse.PNG)
+![image](pics/mae_mse.PNG){width=50%}
 
-![image](pics/SEDI.PNG)
+![image](pics/SEDI.PNG){width=50%}
 
 <!-- >📋  Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it.  -->
 
