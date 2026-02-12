@@ -11,8 +11,13 @@ This repository is the official implementation of [SF$^2$Bench](https://arxiv.or
 ## Dataset
 Please download the dataset from [ https://doi.org/10.7910/DVN/TU5UXE]( https://doi.org/10.7910/DVN/TU5UXE) and Unzip to dataset folder. The detail information of each file is provided in [Dataset.md](./dataset/Dataset.md)
 
+<p align="center">
+  <img src="pics/water_flood.jpg" width="256" height="455">
+  <img src="pics/observation_flood.jpg" width="256" height="455">
+  <!-- <img src="screen3.png" width="256" height="455"> -->
+</p>
 
-![](pics/water_flood.jpg){width=45%} ![](pics/observation_flood.jpg){width=45%}
+<!-- ![](pics/water_flood.jpg){width=45%} ![](pics/observation_flood.jpg){width=45%} -->
 
 ## Requirements
 
