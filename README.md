@@ -12,8 +12,7 @@ This repository is the official implementation of [SF$^2$Bench](https://arxiv.or
 Please download the dataset from [ https://doi.org/10.7910/DVN/TU5UXE]( https://doi.org/10.7910/DVN/TU5UXE) and Unzip to dataset folder. The detail information of each file is provided in [Dataset.md](./dataset/Dataset.md)
 
 
-![image](pics/water_flood.jpg)
-![image](pics/observation_flood.jpg)
+![image](pics/water_flood.jpg){width=45%} ![image](pics/observation_flood.jpg){width=45%}
 
 ## Requirements
 
@@ -66,9 +65,9 @@ We use this repo to reporduce the results, the model state dicts are provided in
 
 The detailed results are provided in our paper. The part benchmark results on three interest parts:
 
-![image](pics/mae_mse.PNG){width=50%}
+![image](pics/mae_mse.PNG)
 
-![image](pics/SEDI.PNG){width=50%}
+![image](pics/SEDI.PNG)
 
 <!-- >📋  Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it.  -->
 
