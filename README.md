@@ -1,6 +1,6 @@
 <!-- >📋  A template README.md for code accompanying a Machine Learning paper -->
 
-# SF$^2$Bench: Evaluating Data-Driven Models for Compound Flood Forecasting in South Florida
+# Uncovering Insights of Compound Flooding with Data-Driven AI
 
 This repository is the official implementation of [SF$^2$Bench](https://arxiv.org/abs/2506.04281). A benchmark paper of compound flood in the South Florida area. In this paper, we consider seveal key factors for compound flood forecasting, including sea level, rainfall, groundwater and human control/management activities.
 
@@ -99,14 +99,13 @@ Thanks for the help of the South Florida Water Management District(SFWMD) in col
 
 ## Citation
 If this repo is useful for you, please consider citing our paper:
+
 ```
-@misc{zheng2025sf2benchevaluatingdatadrivenmodels,
-      title={SF$^2$Bench: Evaluating Data-Driven Models for Compound Flood Forecasting in South Florida}, 
-      author={Xu Zheng and Chaohao Lin and Sipeng Chen and Zhuomin Chen and Jimeng Shi and Wei Cheng and Jayantha Obeysekera and Jason Liu and Dongsheng Luo},
-      year={2025},
-      eprint={2506.04281},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2506.04281}, 
+@inproceedings{zheng2026uncovering,
+  title={Uncovering Insights of Compound Flooding with Data-Driven AI},
+  author={Xu Zheng and Chaohao Lin and Sipeng Chen and Zhuomin Chen and Jimeng Shi and Jayantha Obeysekera and Jingchao Ni and Wei Cheng and Jason Liu and Dongsheng Luo},
+  booktitle={Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2026)},
+  year={2026},
+  note={Accepted for publication}
 }
 ```
