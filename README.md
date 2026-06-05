@@ -106,6 +106,6 @@ If this repo is useful for you, please consider citing our paper:
   author={Xu Zheng and Chaohao Lin and Sipeng Chen and Zhuomin Chen and Jimeng Shi and Jayantha Obeysekera and Jingchao Ni and Wei Cheng and Jason Liu and Dongsheng Luo},
   booktitle={Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2026)},
   year={2026},
-  note={Accepted for publication}
+  note={AI for Sciene Track, Accepted for publication}
 }
 ```
