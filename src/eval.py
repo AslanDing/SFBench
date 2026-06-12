@@ -85,12 +85,14 @@ def evaluation_sep(model, dataloader,dataset,device):
         pred = model(input.to(device)).detach()
 
         if pred.shape[1] == input.shape[1]:
-            metrics = cal_metrics_sperate(output.cpu()[:, water_start:water_end, :],
+            metrics = cal_metrics_sperate(
                                   pred.cpu()[:, water_start:water_end, :].view(input.shape[0], -1, output.shape[-1]),
+                                  output.cpu()[:, water_start:water_end, :],
                                   mean, std, [percent_10, percent_5, percent_1])
         else:
-            metrics = cal_metrics_sperate(output.cpu()[:, water_start:water_end, :],
+            metrics = cal_metrics_sperate(
                                   pred.cpu().view(input.shape[0], -1, output.shape[-1]),
+                                  output.cpu()[:, water_start:water_end, :],
                                   mean, std, [percent_10, percent_5, percent_1])
 
         for key in metrics.keys():
@@ -162,8 +164,8 @@ def evaluation(model, dataloader,dataset,device):
 
     outputs_water =  torch.concat(outputs_water,dim=0)
     preds_water =  torch.concat(preds_water,dim=0)
-    all_metric = cal_metrics(outputs_water,
-                              preds_water,
+    all_metric = cal_metrics( preds_water,
+                              outputs_water,
                               mean, std, [percent_10, percent_5, percent_1])
     pprint(all_metric)
     return all_metric
